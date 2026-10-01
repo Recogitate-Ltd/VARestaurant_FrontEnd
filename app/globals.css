@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #121416;
+  color: #e0e0e0;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide number-input spinners: quantities use the stepper buttons. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: rgba(196, 173, 147, 0.35);
+  color: #fff;
+}
+
+/* Dark native controls (selects, checkboxes) */
+select,
+option {
+  background-color: #1a1c1d;
+  color: #e0e0e0;
+}

@@ -1,0 +1,44 @@
+import type { Metadata, Viewport } from "next";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
+import Providers from "./providers";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Vintage Associates Trade",
+    template: "%s · Vintage Associates Trade",
+  },
+  description: "Wine ordering for restaurants on 30-day account terms. All prices include VAT.",
+  robots: { index: false, follow: false },
+  icons: { icon: "/favicon.png" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#121416",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en-GB" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Work+Sans:wght@300;400;500;600&display=swap"
+        />
+      </head>
+      <body className="min-h-screen flex flex-col font-sans">
+        <Providers>
+          <Header />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </Providers>
+      </body>
+    </html>
+  );
+}
