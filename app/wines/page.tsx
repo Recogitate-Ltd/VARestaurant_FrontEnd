@@ -159,7 +159,7 @@ function Catalogue() {
       </div>
 
       {/* Search + sort, sticky under the header */}
-      <div className="sticky top-16 lg:top-[88px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-base/95 backdrop-blur border-b border-white/5">
+      <div className="sticky top-16 lg:top-[88px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-base/80 backdrop-blur border-b border-white/5">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
