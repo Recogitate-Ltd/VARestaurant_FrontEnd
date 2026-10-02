@@ -64,8 +64,16 @@ function Detail() {
 
       <div className="mt-4 grid gap-8 lg:gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="relative rounded-3xl bg-surface ring-1 ring-white/10 shadow-card overflow-hidden lg:sticky lg:top-[108px] lg:self-start">
-          <div className="aspect-[4/5] sm:aspect-[5/5] lg:aspect-[4/5] bg-gradient-to-b from-[#202224] to-surface grid place-items-center p-6">
-            <BottleImage src={wine.image_url} alt={wine.name} type={wine.wine_type} className="h-full w-full" eager />
+          {/* The photo is positioned inside a fixed frame so a tall image can't
+              stretch it; the frame is capped to fit the screen. */}
+          <div className="relative aspect-[4/5] sm:aspect-square lg:aspect-[4/5] max-h-[420px] sm:max-h-[480px] lg:max-h-[min(560px,70vh)] w-full bg-gradient-to-b from-[#202224] to-surface">
+            <BottleImage
+              src={wine.image_url}
+              alt={wine.name}
+              type={wine.wine_type}
+              className="absolute inset-0 h-full w-full p-8"
+              eager
+            />
           </div>
           <div className="absolute left-4 top-4 flex flex-col gap-1.5">
             {wine.organic && (
