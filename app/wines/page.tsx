@@ -1,6 +1,7 @@
 "use client";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { MessageSquareQuote, Search, SlidersHorizontal, X } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Filters, { ActiveChips, EMPTY_FILTERS, FilterState, LIST_KEYS, activeFilterCount } from "@/components/Filters";
@@ -99,6 +100,13 @@ function Catalogue() {
       .catch(() => undefined);
   }, [filters.view]);
 
+  // A new "Request pricing" from a card bumps the reminder without refetching.
+  useEffect(() => {
+    const bump = () => setFacets((f) => (f ? { ...f, open_price_requests: f.open_price_requests + 1 } : f));
+    window.addEventListener("va-pricing-requested", bump);
+    return () => window.removeEventListener("va-pricing-requested", bump);
+  }, []);
+
   // Keep the box in step with back/forward navigation.
   useEffect(() => setQuery(filters.q), [filters.q]);
 
@@ -180,6 +188,18 @@ function Catalogue() {
             </button>
           ))}
         </div>
+        {!!facets?.open_price_requests && (
+          <Link
+            href="/requests"
+            className="mt-4 flex w-fit items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-3.5 py-2 text-[13px] text-gold hover:bg-gold/15"
+          >
+            <MessageSquareQuote className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+            <span>
+              {facets.open_price_requests} pricing request{facets.open_price_requests === 1 ? "" : "s"} waiting on us
+              <span className="text-ink-soft"> · View your requests</span>
+            </span>
+          </Link>
+        )}
       </div>
 
       {/* Search + sort, sticky under the header */}
