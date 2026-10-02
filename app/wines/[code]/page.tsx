@@ -51,7 +51,7 @@ function Detail() {
   }
   if (!wine) return <PageSpinner />;
 
-  const producerParam = new URLSearchParams({ producer: wine.producer }).toString();
+  const producerParam = new URLSearchParams({ view: "all", producer: wine.producer }).toString();
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 pb-24">
@@ -96,11 +96,15 @@ function Detail() {
 
           <div className="mt-6 rounded-2xl bg-surface p-5 shadow-card ring-1 ring-white/10">
             <div className="flex items-baseline justify-between mb-3">
-              <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">Order</p>
-              <p className="text-[12px] text-ink-faint">Prices include VAT</p>
+              <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">
+                {wine.assigned ? "Order" : "Your price"}
+              </p>
+              {wine.assigned && <p className="text-[12px] text-ink-faint">Your prices, inc VAT</p>}
             </div>
             <AddToBasket wine={wine} />
-            <p className="mt-3 text-[12px] text-ink-faint">Invoiced on ordering · 30 days to pay</p>
+            {wine.assigned && (
+              <p className="mt-3 text-[12px] text-ink-faint">Invoiced on ordering · 30 days to pay</p>
+            )}
           </div>
 
           {wine.tasting_note && (

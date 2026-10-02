@@ -21,6 +21,7 @@ const SORTS = [
 
 function fromParams(params: URLSearchParams): FilterState {
   const f: FilterState = { ...EMPTY_FILTERS };
+  f.view = params.get("view") === "all" ? "all" : "mine";
   f.q = params.get("q") || "";
   f.sort = params.get("sort") || "name";
   for (const key of LIST_KEYS) {
@@ -37,6 +38,7 @@ function fromParams(params: URLSearchParams): FilterState {
 
 function toParams(f: FilterState): string {
   const p = new URLSearchParams();
+  if (f.view === "all") p.set("view", "all");
   if (f.q) p.set("q", f.q);
   if (f.sort && f.sort !== "name") p.set("sort", f.sort);
   // "|" in the page URL because some values contain commas.
@@ -60,6 +62,7 @@ function apiPath(f: FilterState, page: number): string {
   if (f.priced) p.set("priced", "1");
   if (f.min_price) p.set("min_price", f.min_price);
   if (f.max_price) p.set("max_price", f.max_price);
+  if (f.view !== "all") p.set("mine", "1");
   p.set("page", String(page));
   return `/api/trade/wines/?${p.toString()}`;
 }
@@ -90,10 +93,11 @@ function Catalogue() {
   );
 
   useEffect(() => {
-    api<Facets>("/api/trade/filters/")
+    setFacets(null);
+    api<Facets>("/api/trade/filters/", { query: { mine: filters.view === "mine" ? 1 : undefined } })
       .then(setFacets)
       .catch(() => undefined);
-  }, []);
+  }, [filters.view]);
 
   // Keep the box in step with back/forward navigation.
   useEffect(() => setQuery(filters.q), [filters.q]);
@@ -151,11 +155,31 @@ function Catalogue() {
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 pb-24">
       <div className="pt-8 sm:pt-10 pb-5">
-        <h1 className="font-display text-[38px] sm:text-[46px] leading-none font-medium text-white">The list</h1>
+        <h1 className="font-display text-[38px] sm:text-[46px] leading-none font-medium text-white">
+          {filters.view === "mine" ? "Your wine list" : "The full list"}
+        </h1>
         <p className="mt-2 text-[14px] text-ink-soft">
-          {facets ? `${facets.total.toLocaleString()} wines` : "Wines"} · all prices include VAT · bottles or cases of 3, 6
-          and 12
+          {filters.view === "mine"
+            ? "Wines on your list, at your prices (inc VAT) · bottles or cases of 3, 6 and 12"
+            : "Browse everything we carry · request pricing on any wine that isn't on your list yet"}
         </p>
+        <div role="tablist" aria-label="Which wines" className="mt-5 inline-flex rounded-xl border border-white/15 bg-black/20 p-1">
+          {(["mine", "all"] as const).map((v) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={filters.view === v}
+              onClick={() => setFilters({ ...filters, view: v })}
+              className={
+                filters.view === v
+                  ? "h-9 rounded-lg bg-gold px-4 text-[14px] text-black"
+                  : "h-9 rounded-lg px-4 text-[14px] text-ink-soft hover:text-white"
+              }
+            >
+              {v === "mine" ? `My wines${facets && filters.view === "mine" ? ` (${facets.my_wines})` : ""}` : "All wines"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search + sort, sticky under the header */}
@@ -222,11 +246,22 @@ function Catalogue() {
                 <WineCardSkeleton key={i} />
               ))}
             </div>
+          ) : wines.length === 0 && filters.view === "mine" && facets?.my_wines === 0 ? (
+            <div className="rounded-2xl bg-surface p-10 text-center ring-1 ring-white/10">
+              <p className="font-display text-[26px] text-white">Your wine list is being set up</p>
+              <p className="mt-2 text-[14px] text-ink-soft max-w-md mx-auto">
+                We&apos;ll add the wines and prices agreed for your restaurant. In the meantime, browse the full list and
+                request pricing on anything you&apos;d like to order.
+              </p>
+              <Button className="mt-5" onClick={() => setFilters({ ...EMPTY_FILTERS, view: "all" })}>
+                Browse all wines
+              </Button>
+            </div>
           ) : wines.length === 0 ? (
             <div className="rounded-2xl bg-surface p-10 text-center ring-1 ring-white/10">
               <p className="font-display text-[24px] text-white">No wines match</p>
               <p className="mt-2 text-[14px] text-ink-soft">Try a different search or remove a filter.</p>
-              <Button variant="secondary" className="mt-5" onClick={() => setFilters({ ...EMPTY_FILTERS })}>
+              <Button variant="secondary" className="mt-5" onClick={() => setFilters({ ...EMPTY_FILTERS, view: filters.view })}>
                 Clear search &amp; filters
               </Button>
             </div>
@@ -288,7 +323,7 @@ function Catalogue() {
               <Button
                 variant="secondary"
                 className="flex-1"
-                onClick={() => setFilters({ ...EMPTY_FILTERS, q: filters.q, sort: filters.sort })}
+                onClick={() => setFilters({ ...EMPTY_FILTERS, view: filters.view, q: filters.q, sort: filters.sort })}
               >
                 Clear
               </Button>
