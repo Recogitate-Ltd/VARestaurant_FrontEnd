@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import CellarVideo from "@/components/CellarVideo";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Providers from "./providers";
@@ -32,10 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Work+Sans:wght@300;400;500;600&display=swap"
         />
       </head>
-      <body className="min-h-screen flex flex-col font-sans">
+      <body className="relative min-h-screen flex flex-col font-sans">
+        <CellarVideo />
         <Providers>
           <Header />
-          <div className="flex-1">{children}</div>
+          <div className="relative z-10 flex-1">{children}</div>
           <Footer />
         </Providers>
       </body>

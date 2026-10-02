@@ -11,7 +11,7 @@ const LINK = "text-[10px] text-white tracking-[1.2px] uppercase font-light text-
 export default function Footer() {
   const tel = SUPPORT_PHONE.replace(/\s/g, "").replace(/^0/, "+44");
   return (
-    <footer className="mt-20 w-full bg-base flex flex-col items-center justify-center gap-4 py-10 pb-28 lg:pb-10">
+    <footer className="relative z-10 mt-20 w-full bg-base flex flex-col items-center justify-center gap-4 py-10 pb-28 lg:pb-10">
       <FullLogo />
       <a
         className="mt-2 mb-2"
