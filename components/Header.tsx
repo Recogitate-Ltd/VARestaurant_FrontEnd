@@ -78,6 +78,8 @@ export default function Header() {
   const { units, total, ready } = useBasket();
   const [basketOpen, setBasketOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Transparent over the cellar video at the top of the page; solid once scrolled.
+  const [scrolled, setScrolled] = useState(false);
 
   const approved = account?.status === "approved";
   const signedIn = state === "signed-in";
@@ -88,6 +90,13 @@ export default function Header() {
     setMenuOpen(false);
     setBasketOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -119,7 +128,12 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-base/95 backdrop-blur">
+      <header
+        className={clsx(
+          "sticky top-0 z-40 w-full transition-colors duration-300",
+          scrolled || menuOpen ? "bg-base/95 backdrop-blur" : "bg-transparent"
+        )}
+      >
         {/* Desktop */}
         <div className="hidden lg:flex items-center h-[88px] px-6">
           <div className="w-20 mr-2 shrink-0" />

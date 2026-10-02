@@ -40,7 +40,7 @@ export default function Home() {
 
   return (
     <main>
-      <section className="relative overflow-hidden bg-deep text-white">
+      <section className="relative overflow-hidden text-white">
         <div
           aria-hidden
           className="absolute inset-0 opacity-[0.07]"
