@@ -59,6 +59,30 @@ export interface Facets {
   vegan: number;
   /** How many wines are on this restaurant's list. */
   my_wines: number;
+  /** How many of this restaurant's "Request pricing" asks are still waiting on the team. */
+  open_price_requests: number;
+}
+
+export type PriceRequestStatus = "open" | "priced" | "declined";
+
+/** A restaurant's own "Request pricing" ask (/api/trade/price-requests/). */
+export interface PriceRequest {
+  id: number;
+  product_code: string;
+  wine_name: string;
+  producer: string;
+  vintage: string;
+  size: string;
+  wine_type: string;
+  /** False once the wine has left the catalogue. */
+  wine_available: boolean;
+  image_url: string | null;
+  note: string;
+  status: PriceRequestStatus;
+  status_label: string;
+  response_note: string;
+  resolved_at: string | null;
+  created_at: string;
 }
 
 export interface Paginated<T> {

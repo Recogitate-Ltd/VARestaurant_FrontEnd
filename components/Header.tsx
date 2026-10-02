@@ -111,6 +111,7 @@ export default function Header() {
     ? [
         { title: "Wines", href: "/wines" },
         { title: "Orders", href: "/orders" },
+        { title: "Requests", href: "/requests" },
       ]
     : signedIn
       ? []
