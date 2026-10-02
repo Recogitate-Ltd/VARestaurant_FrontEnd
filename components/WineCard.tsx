@@ -23,6 +23,9 @@ export default function WineCard({ wine }: { wine: Wine }) {
           {wine.organic && <Badge className="bg-ok/10 text-ok ring-1 ring-ok/40">Organic</Badge>}
           {wine.vegan && <Badge className="bg-black/40 text-ink-soft ring-1 ring-white/15">Vegan</Badge>}
         </div>
+        {wine.assigned && (
+          <Badge className="absolute left-3 bottom-2 bg-gold/15 text-gold ring-1 ring-gold/40">On your list</Badge>
+        )}
         {wine.vintage && (
           <span className="absolute right-3 top-3 font-display text-[18px] font-medium text-gold">{wine.vintage}</span>
         )}

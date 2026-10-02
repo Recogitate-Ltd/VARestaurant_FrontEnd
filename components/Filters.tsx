@@ -7,6 +7,8 @@ import { typeColour, typeLabel } from "@/lib/format";
 import type { Facet, Facets } from "@/lib/types";
 
 export interface FilterState {
+  /** "mine" = only wines on this restaurant's list; "all" = the whole catalogue. */
+  view: "mine" | "all";
   q: string;
   sort: string;
   type: string[];
@@ -24,6 +26,7 @@ export interface FilterState {
 }
 
 export const EMPTY_FILTERS: FilterState = {
+  view: "mine",
   q: "",
   sort: "name",
   type: [],
@@ -318,7 +321,7 @@ export function ActiveChips({ value, onChange }: { value: FilterState; onChange:
         </button>
       ))}
       <button
-        onClick={() => onChange({ ...EMPTY_FILTERS, q: value.q, sort: value.sort })}
+        onClick={() => onChange({ ...EMPTY_FILTERS, view: value.view, q: value.q, sort: value.sort })}
         className="text-[13px] text-ink-soft underline hover:text-gold"
       >
         Clear all

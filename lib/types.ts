@@ -26,7 +26,10 @@ export interface Wine {
   organic: boolean;
   vegan: boolean;
   image_url: string | null;
-  bottle_price: string | null;
+  /** On this restaurant's own list (orderable at its prices). */
+  assigned: boolean;
+  /** An open "Request pricing" for this wine is waiting on the team. */
+  pricing_requested: boolean;
   from_price: string | null;
   formats: WineFormat[];
 }
@@ -54,6 +57,8 @@ export interface Facets {
   total: number;
   organic: number;
   vegan: number;
+  /** How many wines are on this restaurant's list. */
+  my_wines: number;
 }
 
 export interface Paginated<T> {

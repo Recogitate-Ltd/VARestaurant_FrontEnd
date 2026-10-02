@@ -40,16 +40,7 @@ export default function Home() {
 
   return (
     <main>
-      <section className="relative overflow-hidden text-white">
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, #C4AD93 0 2px, transparent 3px), radial-gradient(circle at 70% 60%, #C4AD93 0 1.5px, transparent 2.5px)",
-            backgroundSize: "42px 42px, 58px 58px",
-          }}
-        />
+      <section className="relative text-white">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24 lg:py-28 grid lg:grid-cols-[1.2fr_1fr] gap-12 items-center">
           <div>
             <p className="text-gold text-[12px] uppercase tracking-[0.35em]">For restaurants &amp; hospitality</p>

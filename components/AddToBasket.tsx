@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import RequestPricing from "@/components/RequestPricing";
 import { useBasket } from "@/lib/basket";
 import { money } from "@/lib/format";
 import type { FormatCode, Wine } from "@/lib/types";
@@ -68,12 +69,9 @@ export default function AddToBasket({ wine, layout = "full" }: { wine: Wine; lay
     return () => clearTimeout(t);
   }, [added]);
 
-  if (formats.length === 0) {
-    return (
-      <div className={clsx("rounded-xl bg-white/[0.04] ring-1 ring-white/10 px-3 py-2.5 text-[13px] text-ink-soft", layout === "full" && "py-3.5")}>
-        <span className="font-medium text-ink">Price on request.</span> Ask your account manager about this wine.
-      </div>
-    );
+  // Not on this restaurant's list (or not sold in any format): ask for a price.
+  if (!wine.assigned || formats.length === 0) {
+    return <RequestPricing wine={wine} layout={layout} />;
   }
 
   const selected = formats.find((f) => f.code === format) ?? formats[0];
