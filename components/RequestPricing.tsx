@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import { Check, MessageSquareQuote } from "lucide-react";
+import Link from "next/link";
 import React, { useState } from "react";
 import { Spinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
@@ -36,7 +37,10 @@ export default function RequestPricing({
         <Check className="h-4 w-4 mt-0.5 shrink-0" />
         <span>
           <b className="font-medium">Pricing requested.</b>{" "}
-          <span className="text-ink-soft">We&apos;ll email you when this wine is on your list.</span>
+          <span className="text-ink-soft">We&apos;ll email you when this wine is on your list.</span>{" "}
+          <Link href="/requests" className="text-gold underline-offset-2 hover:underline">
+            View your requests
+          </Link>
         </span>
       </div>
     );
@@ -52,6 +56,8 @@ export default function RequestPricing({
       });
       setRequested(true);
       onRequested?.(updated);
+      // Lets the wine list keep its "requests waiting" reminder up to date.
+      window.dispatchEvent(new Event("va-pricing-requested"));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't send your request.");
     } finally {
