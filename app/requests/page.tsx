@@ -117,7 +117,10 @@ function FineRequestRow({ r }: { r: FineWineRequest }) {
   );
   const cls = "flex items-center gap-4 rounded-2xl bg-surface p-4 sm:p-5 shadow-card ring-1 ring-white/10";
   return r.wine_id ? (
-    <Link href={`/fine-and-rare/${r.wine_id}`} className={`${cls} hover:ring-gold/40`}>
+    <Link
+      href={`/fine-and-rare/${encodeURIComponent(r.wine_key || String(r.wine_id))}?offer=${r.wine_id}`}
+      className={`${cls} hover:ring-gold/40`}
+    >
       {body}
     </Link>
   ) : (

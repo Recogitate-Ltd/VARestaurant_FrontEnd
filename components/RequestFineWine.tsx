@@ -13,7 +13,15 @@ import type { FineWine } from "@/lib/types";
  * Fine & Rare wines have no price on the site: the restaurant picks how many
  * cases it would like and asks us for a quote. Once sent it shows "Requested".
  */
-export default function RequestFineWine({ wine, layout = "card" }: { wine: FineWine; layout?: "card" | "full" }) {
+export default function RequestFineWine({
+  wine,
+  layout = "card",
+  onRequested,
+}: {
+  wine: FineWine;
+  layout?: "card" | "full";
+  onRequested?: (wine: FineWine) => void;
+}) {
   const [requested, setRequested] = useState(wine.requested);
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
@@ -51,6 +59,7 @@ export default function RequestFineWine({ wine, layout = "card" }: { wine: FineW
         body: { quantity: qty, note: note.trim() },
       });
       setRequested(true);
+      onRequested?.(wine);
       // Lets the Fine & Rare page keep its "requests waiting" reminder up to date.
       window.dispatchEvent(new Event("va-fine-wine-requested"));
     } catch (err) {

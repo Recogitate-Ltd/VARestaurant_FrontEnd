@@ -88,8 +88,8 @@ export interface PriceRequest {
   created_at: string;
 }
 
-/** A Fine & Rare wine (/api/trade/fine-and-rare/): a premium Bordeaux Index
- * wine sourced to order. Never priced on the site: restaurants request a quote. */
+/** One Fine & Rare offer: a vintage of a wine in one case/bottle size. It is
+ * what a restaurant requests. Never priced on the site: we send a quote. */
 export interface FineWine {
   id: number;
   name: string;
@@ -114,6 +114,31 @@ export interface FineWine {
   delivery_estimate: string;
 }
 
+/** A Fine & Rare wine (/api/trade/fine-and-rare/): a premium Bordeaux Index
+ * wine sourced to order, with every vintage and size it is offered in. */
+export interface FineWineCard {
+  /** Card id for /fine-and-rare/<key>. */
+  key: string;
+  name: string;
+  producer: string | null;
+  country: string | null;
+  region: string | null;
+  colour: string | null;
+  image_url: string | null;
+  grape_variety: string | null;
+  taste_profile: string | null;
+  food_pairing: string | null;
+  /** Newest first; "NV" for non-vintage. */
+  vintages: string[];
+  /** Distinct sizes, e.g. "Case of 6 × 75cl". */
+  formats: string[];
+  /** Any offer on the card has an open request. */
+  requested: boolean;
+  delivery_estimate: string;
+  /** Newest vintage first, then smallest size. */
+  offers: FineWine[];
+}
+
 export interface FineWineFacets {
   colours: Facet[];
   total: number;
@@ -127,6 +152,8 @@ export interface FineWineRequest {
   id: number;
   /** Null once the wine has left Bordeaux Index's list. */
   wine_id: number | null;
+  /** The Fine & Rare card the wine is on. */
+  wine_key: string | null;
   wine_name: string;
   producer: string;
   vintage: string;
