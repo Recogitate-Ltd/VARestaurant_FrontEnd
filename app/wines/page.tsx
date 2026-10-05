@@ -367,7 +367,7 @@ function Catalogue() {
 
 export default function WinesPage() {
   return (
-    <Gate>
+    <Gate wines>
       <Suspense>
         <Catalogue />
       </Suspense>

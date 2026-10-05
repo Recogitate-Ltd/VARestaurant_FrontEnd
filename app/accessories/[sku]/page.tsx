@@ -10,7 +10,8 @@ import BottleImage from "@/components/BottleImage";
 import Gate from "@/components/Gate";
 import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
-import { categoryLabel, money, packLabel, withoutBrand } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { categoryLabel, isMember, money, packLabel, withoutBrand } from "@/lib/format";
 import type { AccessoryDetail } from "@/lib/types";
 
 function Spec({ label, children }: { label: string; children: React.ReactNode }) {
@@ -26,6 +27,7 @@ function Spec({ label, children }: { label: string; children: React.ReactNode })
 const WINES_SHOWN = 12;
 
 function Detail() {
+  const { account } = useAuth();
   const { sku } = useParams<{ sku: string }>();
   const router = useRouter();
   const [item, setItem] = useState<AccessoryDetail | null>(null);
@@ -131,7 +133,9 @@ function Detail() {
             <AccessoryPrice item={item} size="lg" />
             <AddAccessory item={item} layout="full" />
             <p className="text-[12px] text-ink-faint">
-              Trade price inc VAT · invoiced with your order · 30 days to pay
+              {isMember(account)
+                ? "Trade price inc VAT · billed separately by our team"
+                : "Trade price inc VAT · invoiced with your order · 30 days to pay"}
             </p>
           </div>
 

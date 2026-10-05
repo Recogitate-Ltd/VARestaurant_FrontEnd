@@ -98,13 +98,18 @@ export default function AccountPage() {
       <h1 className="font-display text-[38px] sm:text-[44px] font-medium text-white">Your account</h1>
       <Alert tone={status.tone} className="mt-4">
         <b>{status.label}</b>
-        {account.status === "approved" && <> · invoices payable within {account.payment_terms_days} days</>}
+        {account.status === "approved" &&
+          (account.kind === "member" ? (
+            <> · orders are billed separately by our team</>
+          ) : (
+            <> · invoices payable within {account.payment_terms_days} days</>
+          ))}
         {account.status === "pending" && <> · applied {formatDate(account.created_at)}</>}
       </Alert>
 
       <section className="mt-6 rounded-2xl bg-surface p-5 sm:p-6 shadow-card ring-1 ring-white/10 text-[14px] grid gap-3 sm:grid-cols-2">
         <div>
-          <p className="text-ink-faint text-[12px]">Business</p>
+          <p className="text-ink-faint text-[12px]">{account.kind === "member" ? "Name" : "Business"}</p>
           <p className="font-medium">{account.business_name}</p>
           {account.company_number && <p className="text-ink-soft">Company no. {account.company_number}</p>}
         </div>
@@ -119,18 +124,26 @@ export default function AccountPage() {
               .filter(Boolean)
               .join(", ")}
           </p>
-          <p className="mt-1 text-[12px] text-ink-faint">To change your business name or billing address, please contact us.</p>
+          <p className="mt-1 text-[12px] text-ink-faint">
+            To change your {account.kind === "member" ? "name" : "business name"} or billing address, please contact us.
+          </p>
         </div>
       </section>
 
       <form onSubmit={save} className="mt-6 rounded-2xl bg-surface p-5 sm:p-6 shadow-card ring-1 ring-white/10">
         <h2 className="font-display text-[24px] font-medium text-white">Contact &amp; delivery</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label="Restaurant name" {...bind("trading_name")} />
-          <Field label="VAT number" {...bind("vat_number")} />
+          {account.kind !== "member" && (
+            <>
+              <Field label="Restaurant name" {...bind("trading_name")} />
+              <Field label="VAT number" {...bind("vat_number")} />
+            </>
+          )}
           <Field label="Contact name" {...bind("contact_name")} />
           <Field label="Phone" type="tel" {...bind("phone")} />
-          <Field className="sm:col-span-2" label="Accounts email for invoices" type="email" hint="Leave blank to use your login email" {...bind("accounts_email")} />
+          {account.kind !== "member" && (
+            <Field className="sm:col-span-2" label="Accounts email for invoices" type="email" hint="Leave blank to use your login email" {...bind("accounts_email")} />
+          )}
           <Field className="sm:col-span-2" label="Delivery address line 1" hint="Leave blank to deliver to the billing address" {...bind("delivery_line1")} />
           <Field className="sm:col-span-2" label="Delivery address line 2" {...bind("delivery_line2")} />
           <Field label="Town / city" {...bind("delivery_city")} />

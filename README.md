@@ -34,6 +34,16 @@ logo, header and footer, colours and fonts).
 Pages that need an approved account show a "being reviewed" or "paused"
 message for pending, rejected and suspended accounts.
 
+### Members (billed separately)
+
+Admins can also give selected Vintage Associates members (investment-app
+clients) access from the admin portal (**Restaurant Trade → Restaurants &
+members → Give a member access**). Members log in here with their usual
+email and password. They browse glassware, and wines too if the admin
+switches that on (at the prices added to their list). At checkout there is no
+invoice and no minimum order: the order is placed, the team is emailed, and
+the member is billed separately.
+
 ## Local development
 
 ```bash

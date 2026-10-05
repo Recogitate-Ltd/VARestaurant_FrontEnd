@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { ButtonLink } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { homePath } from "@/lib/format";
 
 const STEPS = [
   {
@@ -33,9 +34,9 @@ export default function Home() {
   const { state, account } = useAuth();
   const router = useRouter();
 
-  // Approved restaurants go straight to the list.
+  // Approved accounts go straight to the list (glassware when wines are off).
   useEffect(() => {
-    if (state === "signed-in" && account?.status === "approved") router.replace("/wines");
+    if (state === "signed-in" && account?.status === "approved") router.replace(homePath(account));
   }, [state, account, router]);
 
   return (

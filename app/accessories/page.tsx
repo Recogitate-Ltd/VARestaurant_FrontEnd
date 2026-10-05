@@ -9,7 +9,8 @@ import Gate from "@/components/Gate";
 import { WineCardSkeleton } from "@/components/WineCard";
 import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
-import { categoryLabel } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { categoryLabel, isMember } from "@/lib/format";
 import type { Accessory, AccessoryFacets, Paginated } from "@/lib/types";
 
 const SORTS = [
@@ -68,6 +69,7 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 
 function Accessories() {
+  const { account } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,7 +148,7 @@ function Accessories() {
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-ink-soft">
           Professional glassware, decanters and glass care from the Riedel family, at trade prices. Prices
-          include VAT and are invoiced with your wine order.
+          include VAT{isMember(account) ? "." : " and are invoiced with your wine order."}
         </p>
       </div>
 

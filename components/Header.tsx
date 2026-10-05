@@ -9,7 +9,7 @@ import BasketDrawer from "@/components/BasketDrawer";
 import { Logo } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { money } from "@/lib/format";
+import { homePath, money } from "@/lib/format";
 
 /*
  * Mirrors the investment app's header (WineApp-mobile components/layout/header.tsx):
@@ -84,7 +84,8 @@ export default function Header() {
   const approved = account?.status === "approved";
   const signedIn = state === "signed-in";
   const inCheckout = pathname.startsWith("/checkout");
-  const homeHref = approved ? "/wines" : "/";
+  const wines = approved && account?.wines_enabled !== false;
+  const homeHref = approved ? homePath(account) : "/";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -111,7 +112,7 @@ export default function Header() {
   // the bar balances around it.
   const left: NavItem[] = approved
     ? [
-        { title: "Wines", href: "/wines" },
+        ...(wines ? [{ title: "Wines", href: "/wines" }] : []),
         { title: "Accessories", href: "/accessories" },
         { title: "Orders", href: "/orders" },
       ]
@@ -120,7 +121,7 @@ export default function Header() {
       : [{ title: "How it works", href: "/" }];
   const right: NavItem[] = signedIn
     ? [
-        ...(approved ? [{ title: "Requests", href: "/requests" }] : []),
+        ...(wines ? [{ title: "Requests", href: "/requests" }] : []),
         { title: "Account", href: "/account" },
         { title: "Logout", onClick: logout },
       ]

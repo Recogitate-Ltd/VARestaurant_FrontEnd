@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import React from "react";
-import { MIN_ORDER_TOTAL, money } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { MIN_ORDER_TOTAL, minimumOrderFor, money } from "@/lib/format";
 
 /** Below the minimum order (inc VAT)? Pennies are compared, not floats. */
 export function underMinimum(total: number, minimum: number = MIN_ORDER_TOTAL): boolean {
@@ -9,17 +10,20 @@ export function underMinimum(total: number, minimum: number = MIN_ORDER_TOTAL): 
 
 /**
  * The minimum-order note: how much more to add, or nothing once it's met.
- * The minimum is inc VAT, so it's judged on the total inc VAT.
+ * The minimum is inc VAT, so it's judged on the total inc VAT. Without a
+ * ``minimum`` it's the signed-in account's (members have none).
  */
 export function MinimumOrderNote({
   total,
-  minimum = MIN_ORDER_TOTAL,
+  minimum: given,
   className,
 }: {
   total: number;
   minimum?: number;
   className?: string;
 }) {
+  const { account } = useAuth();
+  const minimum = given ?? minimumOrderFor(account);
   if (!underMinimum(total, minimum)) return null;
   return (
     <p className={clsx("rounded-xl border border-gold/50 bg-gold-light/40 px-4 py-3 text-[13px]", className)}>
