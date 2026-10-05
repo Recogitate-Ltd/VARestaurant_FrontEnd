@@ -147,8 +147,8 @@ function Accessories() {
           Wine accessories
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-ink-soft">
-          Professional glassware, decanters and glass care from the Riedel family, at trade prices. Prices
-          include VAT{isMember(account) ? "." : " and are invoiced with your wine order."}
+          Professional glassware, decanters and glass care from the Riedel family
+          {isMember(account) ? ". Prices include VAT." : ", at trade prices. Prices include VAT and are invoiced with your wine order."}
         </p>
       </div>
 
