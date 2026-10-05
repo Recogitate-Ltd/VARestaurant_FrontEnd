@@ -25,6 +25,8 @@ logo, header and footer, colours and fonts).
 | `/login`, `/forgot-password` | Sign in / reset password (6-digit email code) |
 | `/wines` | The list: search, filters (type, country, region, grape, producer, price, organic, vegan, size, closure), sort |
 | `/wines/[code]` | Full wine detail: tasting note, producer note, all specs, order by format |
+| `/accessories` | Wine accessories (Riedel, Spiegelau, Nachtmann glassware, decanters, glass care): categories, brand, search, sort. One trade price for every restaurant, shown against RRP |
+| `/accessories/[sku]` | Accessory detail: description, "ideal for" wines, specs, pack sizes, add to basket |
 | `/basket`, `/checkout` | Basket and checkout (delivery, PO number, notes) |
 | `/orders`, `/orders/[id]` | Order history, invoice status, pay / download invoice |
 | `/account` | Account status and contact / delivery details |

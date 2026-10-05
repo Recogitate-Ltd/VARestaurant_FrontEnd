@@ -54,3 +54,11 @@ option {
   background-color: #1a1c1d;
   color: #e0e0e0;
 }
+
+/* Horizontally scrolling chip rows (accessory categories) without a visible bar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

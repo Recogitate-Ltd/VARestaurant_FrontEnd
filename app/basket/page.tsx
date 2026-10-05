@@ -5,10 +5,10 @@ import { BasketLines } from "@/components/BasketDrawer";
 import Gate from "@/components/Gate";
 import { ButtonLink, PageSpinner } from "@/components/ui";
 import { useBasket } from "@/lib/basket";
-import { money } from "@/lib/format";
+import { contentsSummary, money } from "@/lib/format";
 
 function Basket() {
-  const { lines, total, vat, bottles, ready } = useBasket();
+  const { lines, total, vat, bottles, accessories, ready } = useBasket();
   if (!ready) return <PageSpinner />;
   return (
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
@@ -25,7 +25,7 @@ function Basket() {
           <BasketLines />
           <div className="border-t border-white/10 py-5 space-y-2">
             <div className="flex justify-between text-[14px] text-ink-soft">
-              <span>{bottles} bottle{bottles === 1 ? "" : "s"} · VAT included</span>
+              <span>{contentsSummary(bottles, accessories)} · VAT included</span>
               <span>{money(vat)}</span>
             </div>
             <div className="flex justify-between items-baseline">

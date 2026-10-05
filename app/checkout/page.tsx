@@ -4,13 +4,13 @@ import { CalendarClock, FileText, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import BottleImage from "@/components/BottleImage";
+import { LineThumb, lineDetail } from "@/components/BasketDrawer";
 import Gate from "@/components/Gate";
 import { Alert, Button, ButtonLink, Field, PageSpinner, TextArea } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { FORMAT_SHORT, money } from "@/lib/format";
+import { money } from "@/lib/format";
 import type { FormatCode, Order } from "@/lib/types";
 
 interface Quote {
@@ -228,12 +228,12 @@ function Checkout() {
               {basket.lines.map((l) => (
                 <li key={`${l.product_code}-${l.format}`} className="flex gap-3 py-3">
                   <div className="w-10 h-14 shrink-0 rounded-md bg-[#202224] grid place-items-center">
-                    <BottleImage src={l.image_url} alt="" type={l.wine_type} className="h-12 w-8" />
+                    <LineThumb line={l} className="h-12 w-8" />
                   </div>
                   <div className="flex-1 min-w-0 text-[13px]">
                     <p className="font-medium leading-snug line-clamp-2">{l.name}</p>
                     <p className="text-ink-faint">
-                      {l.quantity} × {FORMAT_SHORT[l.format]} · {money(l.unit_price)}
+                      {l.quantity} × {lineDetail(l)} · {money(l.unit_price)}
                     </p>
                   </div>
                   <p className="text-[14px] font-medium whitespace-nowrap">{money(Number(l.unit_price) * l.quantity)}</p>
@@ -245,6 +245,12 @@ function Checkout() {
                 <span>Bottles</span>
                 <span>{basket.bottles}</span>
               </div>
+              {basket.accessories > 0 && (
+                <div className="flex justify-between text-[14px] text-ink-soft">
+                  <span>Accessories</span>
+                  <span>{basket.accessories}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[14px] text-ink-soft">
                 <span>VAT included (20%)</span>
                 <span>{money(vat)}</span>

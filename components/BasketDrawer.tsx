@@ -6,8 +6,27 @@ import React, { useEffect } from "react";
 import { QuantityStepper } from "@/components/AddToBasket";
 import BottleImage from "@/components/BottleImage";
 import { ButtonLink } from "@/components/ui";
-import { useBasket } from "@/lib/basket";
-import { FORMAT_SHORT, money } from "@/lib/format";
+import { BasketLine, lineHref, useBasket } from "@/lib/basket";
+import { FORMAT_SHORT, contentsSummary, money, packLabel } from "@/lib/format";
+
+/** "Case of 6 · 75cl" for wine, "Set of 2" for accessories. */
+export function lineDetail(l: BasketLine): string {
+  if (l.format === "accessory") return packLabel(l.pack ?? "");
+  return [FORMAT_SHORT[l.format], l.size].filter(Boolean).join(" · ");
+}
+
+/** Small product thumbnail: accessories sit on a light panel so clear glass shows. */
+export function LineThumb({ line, className }: { line: Pick<BasketLine, "format" | "image_url" | "name" | "wine_type">; className: string }) {
+  const accessory = line.format === "accessory";
+  return (
+    <BottleImage
+      src={line.image_url}
+      alt={line.name}
+      type={accessory ? "accessory" : line.wine_type}
+      className={accessory ? `${className} rounded-md bg-[#F3EFE9] p-1` : className}
+    />
+  );
+}
 
 export function BasketLines({ compact = false }: { compact?: boolean }) {
   const { lines, setQuantity, remove } = useBasket();
@@ -15,16 +34,13 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
     <ul className="divide-y divide-white/10">
       {lines.map((l) => (
         <li key={`${l.product_code}-${l.format}`} className="flex gap-3 py-4">
-          <Link
-            href={`/wines/${encodeURIComponent(l.product_code)}`}
-            className="shrink-0 w-14 h-20 rounded-lg bg-[#202224] grid place-items-center"
-          >
-            <BottleImage src={l.image_url} alt={l.name} type={l.wine_type} className="h-[72px] w-12" />
+          <Link href={lineHref(l)} className="shrink-0 w-14 h-20 rounded-lg bg-[#202224] grid place-items-center">
+            <LineThumb line={l} className="h-[72px] w-12" />
           </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2">
               <Link
-                href={`/wines/${encodeURIComponent(l.product_code)}`}
+                href={lineHref(l)}
                 className="font-display text-[17px] leading-tight font-medium text-ink hover:text-gold line-clamp-2 flex-1"
               >
                 {l.name}
@@ -38,7 +54,7 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
               </button>
             </div>
             <p className="text-[12px] text-ink-soft mt-0.5">
-              {FORMAT_SHORT[l.format]} · {l.size} · {money(l.unit_price)} each
+              {lineDetail(l)} · {money(l.unit_price)} each
             </p>
             <div className="mt-2 flex items-center justify-between gap-2">
               <QuantityStepper
@@ -59,7 +75,7 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
 }
 
 export default function BasketDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { lines, total, vat, bottles } = useBasket();
+  const { lines, total, vat, bottles, accessories } = useBasket();
 
   useEffect(() => {
     if (!open) return;
@@ -97,9 +113,14 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
             <div>
               <p className="font-display text-[22px] text-white">Your basket is empty</p>
               <p className="mt-2 text-[14px] text-ink-soft">Browse the list and add bottles or cases.</p>
-              <ButtonLink href="/wines" className="mt-6" variant="secondary">
-                Browse wines
-              </ButtonLink>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <ButtonLink href="/wines" variant="secondary">
+                  Browse wines
+                </ButtonLink>
+                <ButtonLink href="/accessories" variant="ghost">
+                  Glassware &amp; decanters
+                </ButtonLink>
+              </div>
             </div>
           </div>
         ) : (
@@ -109,9 +130,7 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
             </div>
             <footer className="border-t border-white/10 bg-surface px-5 py-4 space-y-3">
               <div className="flex justify-between text-[13px] text-ink-soft">
-                <span>
-                  {bottles} bottle{bottles === 1 ? "" : "s"} · VAT included
-                </span>
+                <span>{contentsSummary(bottles, accessories)} · VAT included</span>
                 <span>{money(vat)}</span>
               </div>
               <div className="flex justify-between items-baseline">

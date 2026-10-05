@@ -22,9 +22,34 @@ export const FORMAT_SHORT: Record<FormatCode, string> = {
   case3: "Case of 3",
   case6: "Case of 6",
   case12: "Case of 12",
+  accessory: "Single",
 };
 
-export const FORMAT_BOTTLES: Record<FormatCode, number> = { bottle: 1, case3: 3, case6: 6, case12: 12 };
+/** Bottles in one unit of a format; accessories count none. */
+export const FORMAT_BOTTLES: Record<FormatCode, number> = { bottle: 1, case3: 3, case6: 6, case12: 12, accessory: 0 };
+
+/** "Single Pack" → "Single", other pack names as the supplier writes them. */
+export function packLabel(pack: string): string {
+  return !pack || /^single pack$/i.test(pack) ? "Single" : pack;
+}
+
+/** "RIEDEL Veritas Cabernet" → "Veritas Cabernet": the brand is shown separately. */
+export function withoutBrand(name: string, brand: string): string {
+  return brand && name.toUpperCase().startsWith(`${brand.toUpperCase()} `) ? name.slice(brand.length + 1) : name;
+}
+
+/** "Red Wine Glasses" → "Red wine glasses" for chips and headings. */
+export function categoryLabel(category: string): string {
+  return category.charAt(0) + category.slice(1).toLowerCase();
+}
+
+/** "3 bottles", "3 bottles · 2 accessories" or "2 accessories". */
+export function contentsSummary(bottles: number, accessories: number): string {
+  const parts = [];
+  if (bottles || !accessories) parts.push(`${bottles} bottle${bottles === 1 ? "" : "s"}`);
+  if (accessories) parts.push(`${accessories} accessor${accessories === 1 ? "y" : "ies"}`);
+  return parts.join(" · ");
+}
 
 /** Colour swatch for a wine type, used on cards and placeholder bottles. */
 export function typeColour(type: string): string {
