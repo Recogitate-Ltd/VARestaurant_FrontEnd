@@ -10,6 +10,30 @@ export function vatIncluded(gross: number): number {
   return Math.round(((gross * 0.2) / 1.2) * 100) / 100;
 }
 
+/** The 20% VAT added to an ex-VAT amount. */
+export function vatOn(net: number): number {
+  return Math.round(net * 0.2 * 100) / 100;
+}
+
+/**
+ * Wine prices are ex VAT (VAT is added at checkout); accessory prices
+ * include VAT. Works out a line's amount before VAT and its VAT, the same way
+ * the server and the invoice do (per line).
+ */
+export function lineVat(lineTotal: number, format: FormatCode): { net: number; vat: number } {
+  if (format === "accessory") {
+    const vat = vatIncluded(lineTotal);
+    return { net: Math.round((lineTotal - vat) * 100) / 100, vat };
+  }
+  return { net: lineTotal, vat: vatOn(lineTotal) };
+}
+
+/** The smallest order we take, inc VAT. The server has the final say (see the quote). */
+export const MIN_ORDER_TOTAL = Number(process.env.NEXT_PUBLIC_MIN_ORDER_TOTAL || 450);
+
+/** Formats we still sell. Cases of 3 and 12 were dropped. */
+export const SOLD_FORMATS: FormatCode[] = ["bottle", "case6", "accessory"];
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   const d = new Date(value);

@@ -20,7 +20,7 @@ const STEPS = [
   {
     icon: Package,
     title: "Order bottles or cases",
-    body: "Single bottles or cases of 3, 6 and 12. Every price includes VAT, so there are no surprises.",
+    body: "Cases of 6, and single bottles on wines from £10. Wine is priced ex VAT, with VAT added at checkout.",
   },
   {
     icon: CalendarClock,
@@ -50,7 +50,7 @@ export default function Home() {
               <span className="text-gold">on account.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[16px] sm:text-[18px] text-ink">
-              Order from the full Vintage Associates trade list in a few taps. Bottles or cases, prices that include
+              Order from the full Vintage Associates trade list in a few taps. Bottles or cases at trade prices ex
               VAT, and an invoice with 30 days to pay.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

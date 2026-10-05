@@ -168,7 +168,7 @@ function Catalogue() {
         </h1>
         <p className="mt-2 text-[14px] text-ink-soft">
           {filters.view === "mine"
-            ? "Wines on your list, at your prices (inc VAT) · bottles or cases of 3, 6 and 12"
+            ? "Wines on your list, at your prices (ex VAT) · single bottles and cases of 6"
             : "Browse everything we carry · request pricing on any wine that isn't on your list yet"}
         </p>
         <div role="tablist" aria-label="Which wines" className="mt-5 inline-flex rounded-xl border border-white/15 bg-black/20 p-1">

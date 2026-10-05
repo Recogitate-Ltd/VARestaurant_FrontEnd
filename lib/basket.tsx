@@ -1,13 +1,16 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { FORMAT_BOTTLES, vatIncluded } from "./format";
+import { FORMAT_BOTTLES, lineVat, SOLD_FORMATS } from "./format";
 import type { Accessory, FormatCode, Wine } from "./types";
 
 /**
  * The basket lives in the browser. Each line keeps a copy of what was shown
  * (name, price, image) so the basket renders instantly; prices are always
  * re-checked by the server when the order is placed.
+ *
+ * Wine prices are ex VAT and accessory prices inc VAT, so the basket keeps a
+ * subtotal (ex VAT), the VAT, and the total inc VAT.
  */
 export interface BasketLine {
   product_code: string;
@@ -38,8 +41,11 @@ interface BasketContextValue {
   remove: (productCode: string, format: FormatCode) => void;
   clear: () => void;
   replacePrices: (prices: { product_code: string; format: FormatCode; unit_price: string }[]) => void;
-  total: number;
+  /** Before VAT. */
+  subtotal: number;
   vat: number;
+  /** Including VAT: what the restaurant pays. */
+  total: number;
   bottles: number;
   /** Accessory units (glasses sets, decanters…) in the basket. */
   accessories: number;
@@ -61,7 +67,8 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setLines(parsed);
+        // Drop lines in formats we no longer sell (cases of 3 and 12).
+        if (Array.isArray(parsed)) setLines(parsed.filter((l: BasketLine) => SOLD_FORMATS.includes(l.format)));
       }
     } catch {
       // ignore unreadable storage
@@ -163,7 +170,15 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(() => {
-    const total = Math.round(lines.reduce((s, l) => s + Number(l.unit_price) * l.quantity, 0) * 100) / 100;
+    let subtotal = 0;
+    let vat = 0;
+    for (const l of lines) {
+      const parts = lineVat(Math.round(Number(l.unit_price) * l.quantity * 100) / 100, l.format);
+      subtotal += parts.net;
+      vat += parts.vat;
+    }
+    subtotal = Math.round(subtotal * 100) / 100;
+    vat = Math.round(vat * 100) / 100;
     return {
       lines,
       ready,
@@ -173,8 +188,9 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
       remove,
       clear,
       replacePrices,
-      total,
-      vat: vatIncluded(total),
+      subtotal,
+      vat,
+      total: Math.round((subtotal + vat) * 100) / 100,
       bottles: lines.reduce((s, l) => s + FORMAT_BOTTLES[l.format] * l.quantity, 0),
       accessories: lines.reduce((s, l) => s + (l.format === "accessory" ? l.quantity : 0), 0),
       units: lines.reduce((s, l) => s + l.quantity, 0),

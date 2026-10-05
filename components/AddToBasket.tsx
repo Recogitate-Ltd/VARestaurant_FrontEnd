@@ -53,7 +53,8 @@ export function QuantityStepper({
 }
 
 /**
- * Pick a format (bottle / case of 3, 6, 12), a quantity, and add to basket.
+ * Pick a format (single bottle or case of 6; wines under £10 a bottle come by
+ * the case only), a quantity, and add to basket. Prices are ex VAT.
  * `layout="card"` is the compact version for catalogue cards.
  */
 export default function AddToBasket({ wine, layout = "full" }: { wine: Wine; layout?: "card" | "full" }) {
@@ -85,7 +86,7 @@ export default function AddToBasket({ wine, layout = "full" }: { wine: Wine; lay
 
   return (
     <div className="space-y-3">
-      <div role="radiogroup" aria-label="Format" className={clsx("grid gap-1.5", layout === "card" ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
+      <div role="radiogroup" aria-label="Format" className={clsx("grid gap-1.5", formats.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
         {formats.map((f) => {
           const active = f.code === selected.code;
           return (

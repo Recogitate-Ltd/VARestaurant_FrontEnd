@@ -5,10 +5,11 @@ import { BasketLines } from "@/components/BasketDrawer";
 import Gate from "@/components/Gate";
 import { ButtonLink, PageSpinner } from "@/components/ui";
 import { useBasket } from "@/lib/basket";
-import { contentsSummary, money } from "@/lib/format";
+import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
+import { contentsSummary } from "@/lib/format";
 
 function Basket() {
-  const { lines, total, vat, bottles, accessories, ready } = useBasket();
+  const { lines, subtotal, total, bottles, accessories, ready } = useBasket();
   if (!ready) return <PageSpinner />;
   return (
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
@@ -24,14 +25,9 @@ function Basket() {
         <div className="mt-6 rounded-2xl bg-surface px-5 shadow-card ring-1 ring-white/10">
           <BasketLines />
           <div className="border-t border-white/10 py-5 space-y-2">
-            <div className="flex justify-between text-[14px] text-ink-soft">
-              <span>{contentsSummary(bottles, accessories)} · VAT included</span>
-              <span>{money(vat)}</span>
-            </div>
-            <div className="flex justify-between items-baseline">
-              <span className="font-medium">Total inc VAT</span>
-              <span className="font-display text-[28px] font-medium text-white">{money(total)}</span>
-            </div>
+            <p className="text-[14px] text-ink-soft">{contentsSummary(bottles, accessories)}</p>
+            <BasketSummary subtotal={subtotal} total={total} hasAccessories={accessories > 0} large />
+            <MinimumOrderNote total={total} />
             <ButtonLink href="/checkout" size="lg" className="w-full mt-2">
               Checkout
             </ButtonLink>

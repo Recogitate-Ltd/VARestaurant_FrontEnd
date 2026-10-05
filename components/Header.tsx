@@ -41,7 +41,7 @@ function DesktopLink({ item, pathname }: { item: NavItem; pathname: string }) {
 }
 
 function BasketButton({ onClick, small = false }: { onClick: () => void; small?: boolean }) {
-  const { units, total, addedAt, ready } = useBasket();
+  const { units, subtotal, addedAt, ready } = useBasket();
   const [bump, setBump] = useState(false);
   useEffect(() => {
     if (!addedAt) return;
@@ -61,7 +61,7 @@ function BasketButton({ onClick, small = false }: { onClick: () => void; small?:
     >
       <ShoppingBag className={small ? "h-[22px] w-[22px]" : "h-6 w-6"} strokeWidth={1.5} />
       {!small && ready && units > 0 && (
-        <span className="text-[13px] tracking-[1.2px] font-light text-white">{money(total)}</span>
+        <span className="text-[13px] tracking-[1.2px] font-light text-white">{money(subtotal)}</span>
       )}
       {ready && units > 0 && (
         <span className="absolute -top-1 -right-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-[18px] text-[#121416]">
@@ -75,7 +75,7 @@ function BasketButton({ onClick, small = false }: { onClick: () => void; small?:
 export default function Header() {
   const pathname = usePathname() || "/";
   const { state, account, logout } = useAuth();
-  const { units, total, ready } = useBasket();
+  const { units, subtotal, ready } = useBasket();
   const [basketOpen, setBasketOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Transparent over the cellar video at the top of the page; solid once scrolled.
@@ -228,7 +228,7 @@ export default function Header() {
               <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
               View basket ({units})
             </span>
-            <span>{money(total)}</span>
+            <span>{money(subtotal)} ex VAT</span>
           </button>
         </div>
       )}

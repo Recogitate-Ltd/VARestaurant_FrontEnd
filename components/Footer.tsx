@@ -33,7 +33,7 @@ export default function Footer() {
         </a>
       </div>
       <p className="px-6 text-[10px] tracking-[1.2px] uppercase font-light text-ink-faint text-center">
-        Trade customers only · All prices include VAT · Please drink responsibly
+        Trade customers only · Wine prices ex VAT · Minimum order £450 inc VAT · Please drink responsibly
       </p>
     </footer>
   );
