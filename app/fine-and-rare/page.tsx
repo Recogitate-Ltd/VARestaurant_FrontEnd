@@ -12,13 +12,11 @@ import WineTabs from "@/components/WineTabs";
 import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { typeColour } from "@/lib/format";
-import type { FineWine, FineWineFacets, Paginated } from "@/lib/types";
+import type { FineWineCard as Card, FineWineFacets, Paginated } from "@/lib/types";
 
 const SORTS = [
   { value: "producer", label: "Producer" },
   { value: "name", label: "Name A–Z" },
-  { value: "-vintage", label: "Vintage: newest" },
-  { value: "vintage", label: "Vintage: oldest" },
 ];
 
 interface Filters {
@@ -55,7 +53,7 @@ function FineAndRare() {
   const filters = useMemo(() => fromParams(new URLSearchParams(searchParams.toString())), [searchParams]);
   const [query, setQuery] = useState(filters.q);
   const [facets, setFacets] = useState<FineWineFacets | null>(null);
-  const [wines, setWines] = useState<FineWine[]>([]);
+  const [wines, setWines] = useState<Card[]>([]);
   const [count, setCount] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -98,7 +96,7 @@ function FineAndRare() {
     const id = ++requestId.current;
     setLoading(true);
     setError("");
-    api<Paginated<FineWine>>(apiPath(filters, 1))
+    api<Paginated<Card>>(apiPath(filters, 1))
       .then((data) => {
         if (id !== requestId.current) return;
         setWines(data.results);
@@ -114,7 +112,7 @@ function FineAndRare() {
   const loadMore = async () => {
     setLoadingMore(true);
     try {
-      const data = await api<Paginated<FineWine>>(apiPath(filters, page + 1));
+      const data = await api<Paginated<Card>>(apiPath(filters, page + 1));
       setWines((w) => [...w, ...data.results]);
       setPage(page + 1);
       setTotalPages(data.total_pages);
@@ -236,7 +234,7 @@ function FineAndRare() {
           <>
             <div className="grid gap-4 sm:gap-5 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {wines.map((w) => (
-                <FineWineCard key={w.id} wine={w} />
+                <FineWineCard key={w.key} card={w} />
               ))}
             </div>
             {page < totalPages && (
