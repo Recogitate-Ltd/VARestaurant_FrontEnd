@@ -192,7 +192,7 @@ function Requests() {
 
 export default function RequestsPage() {
   return (
-    <Gate>
+    <Gate wines>
       <Requests />
     </Gate>
   );

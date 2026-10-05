@@ -6,10 +6,12 @@ import React, { useEffect, useState } from "react";
 import Gate from "@/components/Gate";
 import { Alert, Button, ButtonLink, PageSpinner, PaymentBadge } from "@/components/ui";
 import { api } from "@/lib/api";
-import { formatDate, isOverdue, money, paymentLabel } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { formatDate, homePath, isMember, isOverdue, money, paymentLabel } from "@/lib/format";
 import type { Order, Paginated } from "@/lib/types";
 
 function Orders() {
+  const { account } = useAuth();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -47,14 +49,16 @@ function Orders() {
     <main className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[38px] sm:text-[44px] font-medium text-white">Orders &amp; invoices</h1>
+          <h1 className="font-display text-[38px] sm:text-[44px] font-medium text-white">
+            {isMember(account) ? "Orders" : <>Orders &amp; invoices</>}
+          </h1>
           {outstanding > 0 && (
             <p className="mt-1 text-[14px] text-ink-soft">
               Awaiting payment: <b className="text-ink">{money(outstanding)}</b>
             </p>
           )}
         </div>
-        <ButtonLink href="/wines" variant="secondary" size="sm">
+        <ButtonLink href={homePath(account)} variant="secondary" size="sm">
           New order
         </ButtonLink>
       </div>
@@ -63,8 +67,8 @@ function Orders() {
         <div className="mt-8 rounded-2xl bg-surface p-10 text-center ring-1 ring-white/10">
           <p className="font-display text-[24px] text-white">No orders yet</p>
           <p className="mt-2 text-[14px] text-ink-soft">Your orders and invoices will appear here.</p>
-          <ButtonLink href="/wines" className="mt-6">
-            Browse wines
+          <ButtonLink href={homePath(account)} className="mt-6">
+            {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
           </ButtonLink>
         </div>
       ) : (

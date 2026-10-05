@@ -117,6 +117,10 @@ export interface TradeAccount {
   delivery_postcode: string;
   delivery_instructions: string;
   status: AccountStatus;
+  /** "member": an investment-app client given access by the team. Orders aren't invoiced here; they're billed separately. */
+  kind: "restaurant" | "member";
+  /** False when the account only sees accessories (glassware). */
+  wines_enabled: boolean;
   payment_terms_days: number;
   created_at: string;
 }
@@ -140,7 +144,15 @@ export interface OrderItem {
   image_url: string | null;
 }
 
-export type PaymentStatus = "pending" | "invoiced" | "paid" | "overdue" | "void" | "invoice_failed";
+export type PaymentStatus =
+  | "pending"
+  | "invoiced"
+  | "paid"
+  | "overdue"
+  | "void"
+  | "invoice_failed"
+  /** Member orders: no invoice here, the team bills the member directly. */
+  | "bill_separately";
 
 export interface Order {
   id: number;

@@ -41,10 +41,13 @@ function OrderView() {
           <h1 className="mt-3 font-display text-[34px] sm:text-[40px] leading-tight font-medium">Thank you, your order is in</h1>
           <p className="mt-2 text-[15px] text-ink">
             Order <b className="text-white">{order.reference}</b> has been placed.{" "}
-            {order.hosted_invoice_url
-              ? `We've emailed the invoice to ${invoiceTo}, with payment due by ${formatDate(order.due_date)}.`
-              : `Your invoice will follow by email to ${invoiceTo} shortly.`}{" "}
-            We&apos;ll be in touch to arrange delivery.
+            {order.payment_status === "bill_separately"
+              ? "There's nothing to pay now: a member of our team will be in touch to arrange delivery and billing."
+              : `${
+                  order.hosted_invoice_url
+                    ? `We've emailed the invoice to ${invoiceTo}, with payment due by ${formatDate(order.due_date)}.`
+                    : `Your invoice will follow by email to ${invoiceTo} shortly.`
+                } We'll be in touch to arrange delivery.`}
           </p>
         </div>
       ) : (

@@ -8,7 +8,8 @@ import BottleImage from "@/components/BottleImage";
 import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
 import { ButtonLink } from "@/components/ui";
 import { BasketLine, lineHref, useBasket } from "@/lib/basket";
-import { FORMAT_SHORT, contentsSummary, money, packLabel } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { FORMAT_SHORT, contentsSummary, isMember, money, packLabel } from "@/lib/format";
 
 /** "Case of 6 · 75cl" for wine, "Set of 2" for accessories. */
 export function lineDetail(l: BasketLine): string {
@@ -77,6 +78,8 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
 
 export default function BasketDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lines, subtotal, total, bottles, accessories } = useBasket();
+  const { account } = useAuth();
+  const wines = account?.wines_enabled !== false;
 
   useEffect(() => {
     if (!open) return;
@@ -113,12 +116,16 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
           <div className="flex-1 grid place-items-center px-8 text-center">
             <div>
               <p className="font-display text-[22px] text-white">Your basket is empty</p>
-              <p className="mt-2 text-[14px] text-ink-soft">Browse the list and add bottles or cases.</p>
+              <p className="mt-2 text-[14px] text-ink-soft">
+                {wines ? "Browse the list and add bottles or cases." : "Browse our glassware and decanters."}
+              </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <ButtonLink href="/wines" variant="secondary">
-                  Browse wines
-                </ButtonLink>
-                <ButtonLink href="/accessories" variant="ghost">
+                {wines && (
+                  <ButtonLink href="/wines" variant="secondary">
+                    Browse wines
+                  </ButtonLink>
+                )}
+                <ButtonLink href="/accessories" variant={wines ? "ghost" : "secondary"}>
                   Glassware &amp; decanters
                 </ButtonLink>
               </div>
@@ -136,7 +143,9 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
               <ButtonLink href="/checkout" size="lg" className="w-full">
                 Checkout
               </ButtonLink>
-              <p className="text-center text-[12px] text-ink-faint">Pay by invoice within 30 days</p>
+              <p className="text-center text-[12px] text-ink-faint">
+                {isMember(account) ? "Nothing to pay now: we'll arrange billing with you" : "Pay by invoice within 30 days"}
+              </p>
             </footer>
           </>
         )}

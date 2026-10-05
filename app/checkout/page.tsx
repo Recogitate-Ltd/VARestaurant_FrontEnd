@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, FileText, Lock } from "lucide-react";
+import { CalendarClock, FileText, Lock, Phone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -11,7 +11,7 @@ import { Alert, Button, ButtonLink, Field, PageSpinner, TextArea } from "@/compo
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { MIN_ORDER_TOTAL, money } from "@/lib/format";
+import { homePath, isMember, minimumOrderFor, money } from "@/lib/format";
 import type { FormatCode, Order } from "@/lib/types";
 
 interface Quote {
@@ -96,8 +96,8 @@ function Checkout() {
     return (
       <main className="mx-auto max-w-xl px-6 py-20 text-center">
         <p className="font-display text-[28px] text-white">Your basket is empty</p>
-        <ButtonLink href="/wines" variant="secondary" className="mt-6">
-          Browse wines
+        <ButtonLink href={homePath(account)} variant="secondary" className="mt-6">
+          {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
         </ButtonLink>
       </main>
     );
@@ -141,10 +141,12 @@ function Checkout() {
   const subtotal = quote ? Number(quote.subtotal) : basket.subtotal;
   const total = quote ? Number(quote.total) : basket.total;
   const vat = quote ? Number(quote.vat_amount) : basket.vat;
-  const minimum = quote ? Number(quote.minimum_order_total) : MIN_ORDER_TOTAL;
+  const minimum = quote ? Number(quote.minimum_order_total) : minimumOrderFor(account);
   const belowMinimum = underMinimum(total, minimum);
   const terms = account?.payment_terms_days ?? 30;
   const invoiceTo = account?.accounts_email || account?.email;
+  // Members aren't invoiced here: we take the order and bill them separately.
+  const member = isMember(account);
 
   return (
     <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12 pb-28">
@@ -194,37 +196,50 @@ function Checkout() {
             </div>
           </section>
 
-          <section className="rounded-2xl bg-surface p-5 sm:p-6 shadow-card ring-1 ring-white/10">
-            <h2 className="font-display text-[24px] font-medium text-white">Invoice</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Your PO / reference (optional)"
-                name="po_number"
-                value={po}
-                onChange={(e) => setPo(e.target.value)}
-                hint="Shown on the invoice"
-              />
-              <div className="rounded-xl bg-[#202224] ring-1 ring-white/10 p-4 text-[14px]">
-                <p className="text-ink-faint text-[12px]">Invoice to</p>
-                <p className="font-medium">{account?.business_name}</p>
-                <p className="text-ink-soft break-all">{invoiceTo}</p>
-              </div>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 text-[14px]">
-              <div className="flex gap-3 rounded-xl border border-gold/50 bg-gold-light/40 p-4">
-                <FileText className="h-5 w-5 shrink-0 text-gold-dark" />
+          {member ? (
+            <section className="rounded-2xl bg-surface p-5 sm:p-6 shadow-card ring-1 ring-white/10">
+              <h2 className="font-display text-[24px] font-medium text-white">Payment</h2>
+              <div className="mt-4 flex gap-3 rounded-xl border border-gold/50 bg-gold-light/40 p-4 text-[14px]">
+                <Phone className="h-5 w-5 shrink-0 text-gold-dark" />
                 <p>
-                  We&apos;ll email your invoice to <b className="break-all">{invoiceTo}</b> as soon as you place the order.
+                  There&apos;s nothing to pay now. We&apos;ll confirm your order and a member of our team will be in
+                  touch to arrange delivery and billing.
                 </p>
               </div>
-              <div className="flex gap-3 rounded-xl border border-gold/50 bg-gold-light/40 p-4">
-                <CalendarClock className="h-5 w-5 shrink-0 text-gold-dark" />
-                <p>
-                  Payment is due within <b>{terms} days</b>, by card or bank transfer from the invoice link.
-                </p>
+            </section>
+          ) : (
+            <section className="rounded-2xl bg-surface p-5 sm:p-6 shadow-card ring-1 ring-white/10">
+              <h2 className="font-display text-[24px] font-medium text-white">Invoice</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Your PO / reference (optional)"
+                  name="po_number"
+                  value={po}
+                  onChange={(e) => setPo(e.target.value)}
+                  hint="Shown on the invoice"
+                />
+                <div className="rounded-xl bg-[#202224] ring-1 ring-white/10 p-4 text-[14px]">
+                  <p className="text-ink-faint text-[12px]">Invoice to</p>
+                  <p className="font-medium">{account?.business_name}</p>
+                  <p className="text-ink-soft break-all">{invoiceTo}</p>
+                </div>
               </div>
-            </div>
-          </section>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 text-[14px]">
+                <div className="flex gap-3 rounded-xl border border-gold/50 bg-gold-light/40 p-4">
+                  <FileText className="h-5 w-5 shrink-0 text-gold-dark" />
+                  <p>
+                    We&apos;ll email your invoice to <b className="break-all">{invoiceTo}</b> as soon as you place the order.
+                  </p>
+                </div>
+                <div className="flex gap-3 rounded-xl border border-gold/50 bg-gold-light/40 p-4">
+                  <CalendarClock className="h-5 w-5 shrink-0 text-gold-dark" />
+                  <p>
+                    Payment is due within <b>{terms} days</b>, by card or bank transfer from the invoice link.
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className="order-1 lg:order-2">
@@ -282,10 +297,12 @@ function Checkout() {
                 disabled={problems.length > 0 || !quote || belowMinimum}
               >
                 <Lock className="h-4 w-4" />
-                Place order · pay in {terms} days
+                {member ? "Place order" : `Place order · pay in ${terms} days`}
               </Button>
               <p className="text-center text-[12px] text-ink-faint">
-                By placing this order you agree to pay the invoice within {terms} days.
+                {member
+                  ? "We'll be in touch to arrange billing."
+                  : `By placing this order you agree to pay the invoice within ${terms} days.`}
               </p>
             </div>
           </div>

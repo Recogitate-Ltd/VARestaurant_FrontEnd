@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ShieldAlert } from "lucide-react";
+import { Clock, ShieldAlert, Wine } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { Button, ButtonLink, PageSpinner } from "@/components/ui";
@@ -20,9 +20,10 @@ function Message({ icon, title, children }: { icon: React.ReactNode; title: stri
 /**
  * Wraps pages that need an approved trade account. Signed-out visitors go to
  * the login page; pending, rejected and suspended accounts see why they
- * can't order yet.
+ * can't order yet. ``wines`` pages also need wines switched on for the
+ * account (some members only see glassware).
  */
-export default function Gate({ children }: { children: React.ReactNode }) {
+export default function Gate({ children, wines = false }: { children: React.ReactNode; wines?: boolean }) {
   const { state, account, noTradeAccount, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -90,6 +91,23 @@ export default function Gate({ children }: { children: React.ReactNode }) {
           </a>
           .
         </p>
+      </Message>
+    );
+  }
+
+  if (wines && !account.wines_enabled) {
+    return (
+      <Message icon={<Wine className="h-6 w-6" />} title="Wines aren't on your account">
+        <p>
+          You can browse and order our glassware. To order wine, please contact us on {SUPPORT_PHONE} or{" "}
+          <a className="underline" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>
+          .
+        </p>
+        <div className="pt-2">
+          <ButtonLink href="/accessories">Browse glassware</ButtonLink>
+        </div>
       </Message>
     );
   }

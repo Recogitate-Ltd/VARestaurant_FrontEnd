@@ -4,12 +4,14 @@ import React from "react";
 import { BasketLines } from "@/components/BasketDrawer";
 import Gate from "@/components/Gate";
 import { ButtonLink, PageSpinner } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
 import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
-import { contentsSummary } from "@/lib/format";
+import { contentsSummary, homePath } from "@/lib/format";
 
 function Basket() {
   const { lines, subtotal, total, bottles, accessories, ready } = useBasket();
+  const { account } = useAuth();
   if (!ready) return <PageSpinner />;
   return (
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
@@ -17,8 +19,8 @@ function Basket() {
       {lines.length === 0 ? (
         <div className="mt-6 rounded-2xl bg-surface p-10 text-center ring-1 ring-white/10">
           <p className="font-display text-[22px] text-white">Your basket is empty</p>
-          <ButtonLink href="/wines" variant="secondary" className="mt-5">
-            Browse wines
+          <ButtonLink href={homePath(account)} variant="secondary" className="mt-5">
+            {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
           </ButtonLink>
         </div>
       ) : (

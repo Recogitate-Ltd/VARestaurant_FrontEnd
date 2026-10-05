@@ -10,7 +10,8 @@ import Gate from "@/components/Gate";
 import WineCard from "@/components/WineCard";
 import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
-import { typeColour, typeLabel } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { isMember, typeColour, typeLabel } from "@/lib/format";
 import type { WineDetail } from "@/lib/types";
 
 function Spec({ label, children }: { label: string; children: React.ReactNode }) {
@@ -24,6 +25,7 @@ function Spec({ label, children }: { label: string; children: React.ReactNode })
 }
 
 function Detail() {
+  const { account } = useAuth();
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
   const [wine, setWine] = useState<WineDetail | null>(null);
@@ -111,7 +113,9 @@ function Detail() {
             </div>
             <AddToBasket wine={wine} />
             {wine.assigned && (
-              <p className="mt-3 text-[12px] text-ink-faint">Invoiced on ordering · 30 days to pay</p>
+              <p className="mt-3 text-[12px] text-ink-faint">
+                {isMember(account) ? "Billed separately by our team" : "Invoiced on ordering · 30 days to pay"}
+              </p>
             )}
           </div>
 
@@ -171,7 +175,7 @@ function Detail() {
 
 export default function WineDetailPage() {
   return (
-    <Gate>
+    <Gate wines>
       <Detail />
     </Gate>
   );

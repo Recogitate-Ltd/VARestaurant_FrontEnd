@@ -1,4 +1,4 @@
-import type { FormatCode, Order } from "./types";
+import type { FormatCode, Order, TradeAccount } from "./types";
 
 export function money(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -30,6 +30,21 @@ export function lineVat(lineTotal: number, format: FormatCode): { net: number; v
 
 /** The smallest order we take, inc VAT. The server has the final say (see the quote). */
 export const MIN_ORDER_TOTAL = Number(process.env.NEXT_PUBLIC_MIN_ORDER_TOTAL || 450);
+
+/** A member (investment-app client) account: no invoice at checkout, billed separately. */
+export function isMember(account: Pick<TradeAccount, "kind"> | null | undefined): boolean {
+  return account?.kind === "member";
+}
+
+/** Where an approved account starts: the wine list, or glassware when wines are off. */
+export function homePath(account: Pick<TradeAccount, "wines_enabled"> | null | undefined): string {
+  return account && account.wines_enabled === false ? "/accessories" : "/wines";
+}
+
+/** The minimum order (inc VAT) for this account. Members have none. */
+export function minimumOrderFor(account: Pick<TradeAccount, "kind"> | null | undefined): number {
+  return isMember(account) ? 0 : MIN_ORDER_TOTAL;
+}
 
 /** Formats we still sell. Cases of 3 and 12 were dropped. */
 export const SOLD_FORMATS: FormatCode[] = ["bottle", "case6", "accessory"];
@@ -108,6 +123,8 @@ export function paymentLabel(order: Pick<Order, "payment_status" | "due_date" | 
     case "invoice_failed":
     case "pending":
       return "Invoice to follow";
+    case "bill_separately":
+      return "Order received";
     default:
       return order.payment_status_label;
   }
