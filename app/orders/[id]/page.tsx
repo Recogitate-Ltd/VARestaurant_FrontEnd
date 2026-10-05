@@ -111,20 +111,32 @@ function OrderView() {
           {order.items?.map((item) => (
             <li key={item.id} className="flex gap-4 py-4">
               <div className="w-12 h-16 shrink-0 rounded-lg bg-[#202224] grid place-items-center">
-                <BottleImage src={item.image_url} alt="" type="" className="h-14 w-9" />
+                {item.item_type === "accessory" ? (
+                  <BottleImage
+                    src={item.image_url}
+                    alt=""
+                    type="accessory"
+                    className="h-14 w-10 rounded-md bg-[#F3EFE9] p-1"
+                  />
+                ) : (
+                  <BottleImage src={item.image_url} alt="" type="" className="h-14 w-9" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/wines/${encodeURIComponent(item.product_code)}`}
+                  href={`/${item.item_type === "accessory" ? "accessories" : "wines"}/${encodeURIComponent(item.product_code)}`}
                   className="font-display text-[18px] leading-tight font-medium hover:text-gold"
                 >
                   {item.wine_name}
                 </Link>
                 <p className="text-[13px] text-ink-soft">
-                  {item.quantity} × {item.format_label} · {item.size} · {money(item.unit_price)} each
+                  {item.quantity} × {item.format_label}
+                  {item.size ? ` · ${item.size}` : ""} · {money(item.unit_price)} each
                 </p>
                 <p className="text-[12px] text-ink-faint">
-                  {item.bottles} bottle{item.bottles === 1 ? "" : "s"} · {item.product_code}
+                  {item.item_type === "accessory"
+                    ? `${item.producer} · ${item.product_code}`
+                    : `${item.bottles} bottle${item.bottles === 1 ? "" : "s"} · ${item.product_code}`}
                 </p>
               </div>
               <p className="text-[15px] font-semibold whitespace-nowrap">{money(item.line_total)}</p>

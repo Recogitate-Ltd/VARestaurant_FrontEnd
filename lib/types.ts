@@ -1,9 +1,9 @@
 // Mirrors the backend `trade` app serializers (/api/trade/). Prices include VAT.
 
-export type FormatCode = "bottle" | "case3" | "case6" | "case12";
+export type FormatCode = "bottle" | "case3" | "case6" | "case12" | "accessory";
 
 export interface WineFormat {
-  code: FormatCode;
+  code: Exclude<FormatCode, "accessory">;
   label: string;
   bottles: number;
   price: string;
@@ -120,6 +120,7 @@ export interface TradeAccount {
 
 export interface OrderItem {
   id: number;
+  item_type: "wine" | "accessory";
   product_code: string;
   wine_name: string;
   producer: string;
@@ -160,4 +161,51 @@ export interface Order {
   paid_at: string | null;
   created_at: string;
   items?: OrderItem[];
+}
+
+/** Glassware, decanters and care from Riedel, Spiegelau and Nachtmann (/api/trade/accessories/). */
+export interface Accessory {
+  id: number;
+  sku: string;
+  name: string;
+  brand: string;
+  collection: string;
+  category: string;
+  sub_category: string;
+  /** e.g. "Set of 2", "Value Pack - Buy 3 Get 4". */
+  pack: string;
+  pieces: number;
+  /** "New", "Limited Edition" or "". */
+  label: string;
+  colour: string;
+  glassware_type: string;
+  image_url: string | null;
+  /** The supplier's retail price, inc VAT. */
+  rrp: string;
+  /** What this restaurant pays, inc VAT. */
+  price: string;
+  price_per_piece: string;
+  /** Whole % below RRP, or null when not below it. */
+  saving_percent: number | null;
+}
+
+export interface AccessoryDetail extends Accessory {
+  description: string;
+  fabrication: string;
+  material: string;
+  height_mm: number | null;
+  diameter_mm: number | null;
+  pour_ml: number | null;
+  recommended_for: string[];
+  /** The same glass in other pack sizes. */
+  other_packs: Accessory[];
+  more_from_collection: Accessory[];
+}
+
+export interface AccessoryFacets {
+  categories: Facet[];
+  brands: Facet[];
+  collections: Facet[];
+  price_range: { min: string; max: string } | null;
+  total: number;
 }

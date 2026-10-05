@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FORMAT_BOTTLES, vatIncluded } from "./format";
-import type { FormatCode, Wine } from "./types";
+import type { Accessory, FormatCode, Wine } from "./types";
 
 /**
  * The basket lives in the browser. Each line keeps a copy of what was shown
@@ -19,12 +19,21 @@ export interface BasketLine {
   wine_type: string;
   image_url: string | null;
   unit_price: string;
+  /** Accessory lines (format "accessory", product_code = SKU) keep their pack, e.g. "Set of 2". */
+  pack?: string;
+}
+
+/** Where a basket line's product lives on the site. */
+export function lineHref(line: Pick<BasketLine, "product_code" | "format">): string {
+  const code = encodeURIComponent(line.product_code);
+  return line.format === "accessory" ? `/accessories/${code}` : `/wines/${code}`;
 }
 
 interface BasketContextValue {
   lines: BasketLine[];
   ready: boolean;
   add: (wine: Wine, format: FormatCode, quantity: number) => void;
+  addAccessory: (item: Accessory, quantity: number) => void;
   setQuantity: (productCode: string, format: FormatCode, quantity: number) => void;
   remove: (productCode: string, format: FormatCode) => void;
   clear: () => void;
@@ -32,6 +41,8 @@ interface BasketContextValue {
   total: number;
   vat: number;
   bottles: number;
+  /** Accessory units (glasses sets, decanters…) in the basket. */
+  accessories: number;
   units: number;
   /** Bumps whenever something is added, so the header can animate. */
   addedAt: number;
@@ -95,6 +106,34 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
     setAddedAt(Date.now());
   }, []);
 
+  const addAccessory = useCallback((item: Accessory, quantity: number) => {
+    if (quantity < 1) return;
+    setLines((prev) => {
+      const existing = prev.find((l) => l.product_code === item.sku && l.format === "accessory");
+      if (existing) {
+        return prev.map((l) =>
+          l === existing ? { ...l, quantity: Math.min(l.quantity + quantity, 500), unit_price: item.price } : l
+        );
+      }
+      return [
+        ...prev,
+        {
+          product_code: item.sku,
+          format: "accessory",
+          quantity,
+          name: item.name,
+          producer: item.brand,
+          size: "",
+          wine_type: "accessory",
+          image_url: item.image_url,
+          unit_price: item.price,
+          pack: item.pack,
+        },
+      ];
+    });
+    setAddedAt(Date.now());
+  }, []);
+
   const setQuantity = useCallback((code: string, format: FormatCode, quantity: number) => {
     setLines((prev) =>
       quantity < 1
@@ -129,6 +168,7 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
       lines,
       ready,
       add,
+      addAccessory,
       setQuantity,
       remove,
       clear,
@@ -136,10 +176,11 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
       total,
       vat: vatIncluded(total),
       bottles: lines.reduce((s, l) => s + FORMAT_BOTTLES[l.format] * l.quantity, 0),
+      accessories: lines.reduce((s, l) => s + (l.format === "accessory" ? l.quantity : 0), 0),
       units: lines.reduce((s, l) => s + l.quantity, 0),
       addedAt,
     };
-  }, [lines, ready, add, setQuantity, remove, clear, replacePrices, addedAt]);
+  }, [lines, ready, add, addAccessory, setQuantity, remove, clear, replacePrices, addedAt]);
 
   return <BasketContext.Provider value={value}>{children}</BasketContext.Provider>;
 }

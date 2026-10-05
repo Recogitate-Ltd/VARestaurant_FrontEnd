@@ -4,7 +4,10 @@ import clsx from "clsx";
 import React, { useState } from "react";
 import { typeColour } from "@/lib/format";
 
-/** Wine bottle photo, falling back to a drawn bottle in the wine's colour. */
+/**
+ * Product photo. Wines fall back to a drawn bottle in the wine's colour;
+ * accessories (`type="accessory"`) to a drawn wine glass.
+ */
 export default function BottleImage({
   src,
   alt,
@@ -19,6 +22,19 @@ export default function BottleImage({
   eager?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  if ((!src || failed) && type === "accessory") {
+    return (
+      <div className={clsx("flex items-center justify-center", className)} aria-label={alt} role="img">
+        <svg viewBox="0 0 80 160" className="h-[78%] w-auto" fill="none" stroke="#B39C82" strokeWidth="2.2">
+          <path d="M18 8h44c2 22 2 40-6 52-5 7-10 10-16 11-6-1-11-4-16-11-8-12-8-30-6-52z" />
+          <path d="M20 34c12 4 28 4 40 0" opacity="0.6" />
+          <path d="M40 71v66" />
+          <path d="M20 148c6-7 34-7 40 0" />
+          <path d="M18 150h44" />
+        </svg>
+      </div>
+    );
+  }
   if (!src || failed) {
     const colour = typeColour(type);
     return (

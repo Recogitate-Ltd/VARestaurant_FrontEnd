@@ -110,6 +110,7 @@ export default function Header() {
   const left: NavItem[] = approved
     ? [
         { title: "Wines", href: "/wines" },
+        { title: "Accessories", href: "/accessories" },
         { title: "Orders", href: "/orders" },
         { title: "Requests", href: "/requests" },
       ]

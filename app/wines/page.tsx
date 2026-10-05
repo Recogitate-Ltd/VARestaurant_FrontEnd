@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquareQuote, Search, SlidersHorizontal, X } from "lucide-react";
+import { MessageSquareQuote, Search, SlidersHorizontal, Wine as WineGlass, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -188,6 +188,13 @@ function Catalogue() {
             </button>
           ))}
         </div>
+        <Link
+          href="/accessories"
+          className="mt-4 ml-0 sm:ml-3 inline-flex w-fit items-center gap-2 align-middle text-[13px] text-ink-soft hover:text-gold"
+        >
+          <WineGlass className="h-4 w-4 text-gold" strokeWidth={1.5} />
+          Riedel glassware &amp; decanters at trade prices →
+        </Link>
         {!!facets?.open_price_requests && (
           <Link
             href="/requests"
