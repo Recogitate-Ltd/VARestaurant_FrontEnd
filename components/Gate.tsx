@@ -21,9 +21,18 @@ function Message({ icon, title, children }: { icon: React.ReactNode; title: stri
  * Wraps pages that need an approved trade account. Signed-out visitors go to
  * the login page; pending, rejected and suspended accounts see why they
  * can't order yet. ``wines`` pages also need wines switched on for the
- * account (some members only see glassware).
+ * account (some members only see glassware). ``restaurant`` pages (Fine &
+ * Rare) are for restaurant accounts only, not members.
  */
-export default function Gate({ children, wines = false }: { children: React.ReactNode; wines?: boolean }) {
+export default function Gate({
+  children,
+  wines = false,
+  restaurant = false,
+}: {
+  children: React.ReactNode;
+  wines?: boolean;
+  restaurant?: boolean;
+}) {
   const { state, account, noTradeAccount, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -107,6 +116,22 @@ export default function Gate({ children, wines = false }: { children: React.Reac
         </p>
         <div className="pt-2">
           <ButtonLink href="/accessories">Browse glassware</ButtonLink>
+        </div>
+      </Message>
+    );
+  }
+
+  if (restaurant && account.kind === "member") {
+    return (
+      <Message icon={<Wine className="h-6 w-6" />} title="Fine & Rare is in your app">
+        <p>
+          As a Vintage Associates member you can browse and buy our fine and rare wines in the Wine Shop in your
+          app.
+        </p>
+        <div className="pt-2">
+          <ButtonLink href={account.wines_enabled ? "/wines" : "/accessories"} variant="secondary">
+            Back to the list
+          </ButtonLink>
         </div>
       </Message>
     );

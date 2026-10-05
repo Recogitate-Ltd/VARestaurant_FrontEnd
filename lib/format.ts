@@ -37,6 +37,11 @@ export function isMember(account: Pick<TradeAccount, "kind"> | null | undefined)
 }
 
 /** Where an approved account starts: the wine list, or glassware when wines are off. */
+/** Fine & Rare is for restaurants: members reach these wines in their app's Wine Shop. */
+export function seesFineAndRare(account: Pick<TradeAccount, "kind" | "wines_enabled"> | null | undefined): boolean {
+  return !!account && account.kind !== "member" && account.wines_enabled !== false;
+}
+
 export function homePath(account: Pick<TradeAccount, "wines_enabled"> | null | undefined): string {
   return account && account.wines_enabled === false ? "/accessories" : "/wines";
 }

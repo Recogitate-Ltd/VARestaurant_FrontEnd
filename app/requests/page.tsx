@@ -2,19 +2,23 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect, useState } from "react";
 import BottleImage from "@/components/BottleImage";
 import Gate from "@/components/Gate";
 import { Alert, Badge, Button, ButtonLink, PageSpinner } from "@/components/ui";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/format";
-import type { Paginated, PriceRequest, PriceRequestStatus } from "@/lib/types";
+import { useAuth } from "@/lib/auth";
+import { formatDate, seesFineAndRare } from "@/lib/format";
+import type { FineWineRequest, Paginated, PriceRequest, PriceRequestStatus } from "@/lib/types";
 
 const TABS = [
   { value: "open", label: "Waiting" },
   { value: "all", label: "All requests" },
+  { value: "fine", label: "Fine & Rare" },
 ] as const;
 type Tab = (typeof TABS)[number]["value"];
+type Row = PriceRequest | FineWineRequest;
 
 function StatusBadge({ status, label }: { status: PriceRequestStatus; label: string }) {
   const tone =
@@ -72,19 +76,77 @@ function RequestRow({ r }: { r: PriceRequest }) {
   );
 }
 
+function FineRequestRow({ r }: { r: FineWineRequest }) {
+  const unit = r.format_label.startsWith("Single") ? "bottle" : "case";
+  const details = [r.producer, r.format_label, `${r.quantity} ${unit}${r.quantity === 1 ? "" : "s"}`]
+    .filter(Boolean)
+    .join(" · ");
+  const tone =
+    r.status === "quoted"
+      ? "bg-ok/10 text-ok ring-1 ring-ok/40"
+      : r.status === "declined"
+        ? "bg-white/5 text-ink-faint ring-1 ring-white/15"
+        : "bg-gold/10 text-gold ring-1 ring-gold/40";
+  const body = (
+    <>
+      <BottleImage src={r.image_url} alt={r.wine_name} type="red" className="h-20 w-12 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-ink">{[r.vintage, r.wine_name].filter(Boolean).join(" ")}</span>
+          <Badge className={tone}>{r.status === "open" ? "Waiting" : r.status_label}</Badge>
+        </div>
+        {details && <p className="mt-0.5 text-[13px] text-ink-soft">{details}</p>}
+        <p className="mt-0.5 text-[13px] text-ink-faint">
+          Requested {formatDate(r.created_at)}
+          {r.resolved_at && <> · Answered {formatDate(r.resolved_at)}</>}
+        </p>
+        {r.note && (
+          <p className="mt-2 text-[13px] text-ink-soft">
+            <span className="text-ink-faint">Your note:</span> {r.note}
+          </p>
+        )}
+        {r.response_note && (
+          <p className="mt-1 text-[13px] text-ink-soft whitespace-pre-line">
+            <span className="text-ink-faint">{r.status === "quoted" ? "Our quote:" : "Our reply:"}</span>{" "}
+            {r.response_note}
+          </p>
+        )}
+      </div>
+      {r.wine_id && <ChevronRight className="h-5 w-5 text-ink-faint shrink-0" />}
+    </>
+  );
+  const cls = "flex items-center gap-4 rounded-2xl bg-surface p-4 sm:p-5 shadow-card ring-1 ring-white/10";
+  return r.wine_id ? (
+    <Link href={`/fine-and-rare/${r.wine_id}`} className={`${cls} hover:ring-gold/40`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
+  );
+}
+
 function Requests() {
-  const [tab, setTab] = useState<Tab>("open");
-  const [requests, setRequests] = useState<PriceRequest[] | null>(null);
+  const { account } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const showFine = seesFineAndRare(account);
+  const tabs = TABS.filter((t) => t.value !== "fine" || showFine);
+  const wanted = searchParams.get("tab");
+  const tab: Tab = wanted === "all" || (wanted === "fine" && showFine) ? wanted : "open";
+  const setTab = (t: Tab) => router.replace(t === "open" ? "/requests" : `/requests?tab=${t}`, { scroll: false });
+  const [requests, setRequests] = useState<Row[] | null>(null);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchPage = (t: Tab, p: number) =>
-    api<Paginated<PriceRequest>>("/api/trade/price-requests/", {
-      query: { page: p, status: t === "open" ? "open" : undefined },
-    });
+  const fetchPage = (t: Tab, p: number): Promise<Paginated<Row>> =>
+    t === "fine"
+      ? api<Paginated<FineWineRequest>>("/api/trade/fine-and-rare/requests/", { query: { page: p } })
+      : api<Paginated<PriceRequest>>("/api/trade/price-requests/", {
+          query: { page: p, status: t === "open" ? "open" : undefined },
+        });
 
   useEffect(() => {
     let current = true;
@@ -121,18 +183,22 @@ function Requests() {
     <main className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[38px] sm:text-[44px] font-medium text-white">Pricing requests</h1>
+          <h1 className="font-display text-[38px] sm:text-[44px] font-medium text-white">
+            {tab === "fine" ? "Fine & Rare requests" : "Pricing requests"}
+          </h1>
           <p className="mt-1 text-[14px] text-ink-soft">
-            Wines you&apos;ve asked us to price. We&apos;ll email you when each one is on your list.
+            {tab === "fine"
+              ? "Fine & Rare wines you've asked us to quote for. We'll email you each quote."
+              : "Wines you've asked us to price. We'll email you when each one is on your list."}
           </p>
         </div>
-        <ButtonLink href="/wines?view=all" variant="secondary" size="sm">
-          Browse all wines
+        <ButtonLink href={tab === "fine" ? "/fine-and-rare" : "/wines?view=all"} variant="secondary" size="sm">
+          {tab === "fine" ? "Browse Fine & Rare" : "Browse all wines"}
         </ButtonLink>
       </div>
 
       <div role="tablist" aria-label="Which requests" className="mt-6 inline-flex rounded-xl border border-white/15 bg-black/20 p-1">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.value}
             role="tab"
@@ -162,7 +228,9 @@ function Requests() {
           <p className="mt-2 text-[14px] text-ink-soft max-w-md mx-auto">
             {tab === "open"
               ? "You have no pricing requests waiting on us."
-              : "Find a wine that isn't on your list and tap “Request pricing” — it will appear here."}
+              : tab === "fine"
+                ? "Find a wine in Fine & Rare and tap “Request” — it will appear here."
+                : "Find a wine that isn't on your list and tap “Request pricing” — it will appear here."}
           </p>
           {tab === "open" && (
             <Button variant="secondary" className="mt-5" onClick={() => setTab("all")}>
@@ -174,7 +242,7 @@ function Requests() {
         <ul className="mt-6 space-y-3">
           {requests.map((r) => (
             <li key={r.id}>
-              <RequestRow r={r} />
+              {tab === "fine" ? <FineRequestRow r={r as FineWineRequest} /> : <RequestRow r={r as PriceRequest} />}
             </li>
           ))}
         </ul>
@@ -193,7 +261,9 @@ function Requests() {
 export default function RequestsPage() {
   return (
     <Gate wines>
-      <Requests />
+      <Suspense>
+        <Requests />
+      </Suspense>
     </Gate>
   );
 }
