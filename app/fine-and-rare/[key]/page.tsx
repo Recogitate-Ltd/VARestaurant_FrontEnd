@@ -30,11 +30,16 @@ function Choice({
   onClick,
   children,
   requested,
+  muted,
+  title,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   requested?: boolean;
+  /** Not offered with the other choice; still clickable (it switches that choice). */
+  muted?: boolean;
+  title?: string;
 }) {
   return (
     <button
@@ -42,9 +47,14 @@ function Choice({
       role="radio"
       aria-checked={active}
       onClick={onClick}
+      title={title}
       className={clsx(
         "inline-flex h-10 items-center gap-1.5 rounded-xl border px-3.5 text-[14px] transition-colors",
-        active ? "border-gold bg-gold text-black" : "border-white/15 bg-surface text-ink hover:border-gold/60"
+        active
+          ? "border-gold bg-gold text-black"
+          : muted
+            ? "border-dashed border-white/15 bg-transparent text-ink-faint hover:border-gold/60 hover:text-ink"
+            : "border-white/15 bg-surface text-ink hover:border-gold/60"
       )}
     >
       {children}
@@ -106,6 +116,26 @@ function Detail() {
     setOfferId((same ?? card.offers.find((o) => vintageOf(o) === v))!.id);
   };
   const requestedVintage = (v: string) => card.offers.some((o) => vintageOf(o) === v && o.requested);
+  // Every size the wine comes in is shown. One the chosen vintage doesn't come
+  // in is faded; choosing it moves to the newest vintage that has it.
+  const pickSize = (format: string) => {
+    const here = sizes.find((o) => o.format_label === format);
+    const target = here ?? card.offers.find((o) => o.format_label === format)!;
+    setVintage(vintageOf(target));
+    setOfferId(target.id);
+  };
+  const vintagesWith = (format: string) =>
+    card.offers.filter((o) => o.format_label === format).map(vintageOf);
+  const hasSize = (v: string) => card.offers.some((o) => vintageOf(o) === v && o.format_label === offer.format_label);
+  // Smallest first: single bottles, then cases by bottle count, then bottle size.
+  const allSizes = Array.from(
+    new Map(
+      [...card.offers]
+        .sort((x, y) => x.pack_size - y.pack_size || parseFloat(x.bottle_size || "0") - parseFloat(y.bottle_size || "0"))
+        .map((o) => [o.format_label, o])
+    ).keys()
+  );
+  const missingSizes = allSizes.filter((f) => !sizes.some((o) => o.format_label === f));
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 pb-24">
@@ -151,7 +181,14 @@ function Detail() {
               </p>
               <div role="radiogroup" aria-label="Vintage" className="flex flex-wrap gap-2">
                 {card.vintages.map((v) => (
-                  <Choice key={v} active={v === vintage} onClick={() => pickVintage(v)} requested={requestedVintage(v)}>
+                  <Choice
+                    key={v}
+                    active={v === vintage}
+                    onClick={() => pickVintage(v)}
+                    requested={requestedVintage(v)}
+                    muted={!hasSize(v)}
+                    title={hasSize(v) ? undefined : `Not offered as ${offer.format_label}`}
+                  >
                     {v}
                   </Choice>
                 ))}
@@ -160,12 +197,27 @@ function Detail() {
             <div>
               <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">Size</p>
               <div role="radiogroup" aria-label="Size" className="flex flex-wrap gap-2">
-                {sizes.map((o) => (
-                  <Choice key={o.id} active={o.id === offer.id} onClick={() => setOfferId(o.id)} requested={o.requested}>
-                    {o.format_label}
-                  </Choice>
-                ))}
+                {allSizes.map((f) => {
+                  const here = sizes.find((o) => o.format_label === f);
+                  return (
+                    <Choice
+                      key={f}
+                      active={f === offer.format_label}
+                      onClick={() => pickSize(f)}
+                      requested={here?.requested}
+                      muted={!here}
+                      title={here ? undefined : `Available in ${vintagesWith(f).join(", ")}`}
+                    >
+                      {f}
+                    </Choice>
+                  );
+                })}
               </div>
+              {missingSizes.length > 0 && (
+                <p className="mt-2 text-[12px] text-ink-faint">
+                  Faded sizes aren&apos;t offered in {vintage}. Choose one to switch to a vintage that has it.
+                </p>
+              )}
             </div>
             <div className="border-t border-white/10 pt-4">
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">
@@ -209,7 +261,7 @@ function Detail() {
               <Spec label="Grape variety">{card.grape_variety}</Spec>
               <Spec label="Vintages">{card.vintages.join(", ")}</Spec>
               <Spec label="ABV">{offer.abv ? `${offer.abv.replace(/\s*%$/, "")}%` : null}</Spec>
-              <Spec label="Sizes">{card.formats.join(", ")}</Spec>
+              <Spec label="Sizes (all vintages)">{allSizes.join(", ")}</Spec>
               <Spec label="Food pairing">{card.food_pairing}</Spec>
             </dl>
           </section>
