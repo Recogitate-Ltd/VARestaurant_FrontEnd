@@ -11,6 +11,7 @@ import WineCard from "@/components/WineCard";
 import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useScrollToTop } from "@/lib/scroll";
 import { isMember, typeColour, typeLabel } from "@/lib/format";
 import type { WineDetail } from "@/lib/types";
 
@@ -30,6 +31,7 @@ function Detail() {
   const router = useRouter();
   const [wine, setWine] = useState<WineDetail | null>(null);
   const [error, setError] = useState("");
+  useScrollToTop(code);
 
   useEffect(() => {
     setWine(null);

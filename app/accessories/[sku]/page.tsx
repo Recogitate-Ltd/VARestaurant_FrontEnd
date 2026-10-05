@@ -11,6 +11,7 @@ import Gate from "@/components/Gate";
 import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { keepScrollOnNextPage, useScrollToTop } from "@/lib/scroll";
 import { categoryLabel, isMember, money, packLabel, withoutBrand } from "@/lib/format";
 import type { AccessoryDetail } from "@/lib/types";
 
@@ -33,6 +34,7 @@ function Detail() {
   const [item, setItem] = useState<AccessoryDetail | null>(null);
   const [error, setError] = useState("");
   const [allWines, setAllWines] = useState(false);
+  useScrollToTop(sku);
 
   useEffect(() => {
     setItem(null);
@@ -110,6 +112,7 @@ function Detail() {
                         aria-checked={active}
                         replace
                         scroll={false}
+                        onClick={active ? undefined : keepScrollOnNextPage}
                         className={clsx(
                           "rounded-xl border px-2.5 py-2 transition-colors",
                           active ? "border-gold bg-gold text-black" : "border-white/15 bg-surface hover:border-gold/60"
