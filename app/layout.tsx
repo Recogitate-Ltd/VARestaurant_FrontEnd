@@ -37,9 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CellarVideo />
         <Providers>
           <Header />
-          {/* Keep the cellar video clear: page content starts where the video
-              fades into the page (~60vh down, less the header's height). */}
-          <div aria-hidden className="h-[calc(60vh-4rem)] lg:h-[calc(60vh-88px)] shrink-0" />
+          {/* Leave a short band of cellar video under the header; the page
+              heading then sits over the video's darker lower half as it fades
+              into the page (~30vh down, less the header's height). */}
+          <div aria-hidden className="h-[max(2rem,calc(26vh-4rem))] lg:h-[max(3rem,calc(30vh-88px))] shrink-0" />
           <div className="relative z-10 flex-1">{children}</div>
           <Footer />
         </Providers>

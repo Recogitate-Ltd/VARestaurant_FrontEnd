@@ -107,18 +107,20 @@ export default function Header() {
     };
   }, [menuOpen]);
 
+  // Approved accounts get six links, split three either side of the VA mark so
+  // the bar balances around it.
   const left: NavItem[] = approved
     ? [
         { title: "Wines", href: "/wines" },
         { title: "Accessories", href: "/accessories" },
         { title: "Orders", href: "/orders" },
-        { title: "Requests", href: "/requests" },
       ]
     : signedIn
       ? []
       : [{ title: "How it works", href: "/" }];
   const right: NavItem[] = signedIn
     ? [
+        ...(approved ? [{ title: "Requests", href: "/requests" }] : []),
         { title: "Account", href: "/account" },
         { title: "Logout", onClick: logout },
       ]
@@ -138,8 +140,9 @@ export default function Header() {
       >
         {/* Desktop */}
         <div className="hidden lg:flex items-center h-[88px] px-6">
-          <div className="w-20 mr-2 shrink-0" />
-          <nav className="flex flex-1 min-w-0 items-center justify-end gap-4" aria-label="Main">
+          {/* Equal-width end slots keep the mark dead centre, whatever the basket shows */}
+          <div className="w-40 shrink-0" />
+          <nav className="flex flex-1 min-w-0 items-center justify-end gap-2" aria-label="Main">
             {left.map((item) => (
               <DesktopLink key={item.title} item={item} pathname={pathname} />
             ))}
@@ -152,7 +155,7 @@ export default function Header() {
               <DesktopLink key={item.title} item={item} pathname={pathname} />
             ))}
           </nav>
-          <div className="w-20 ml-2 shrink-0 flex justify-end">
+          <div className="w-40 shrink-0 flex justify-end">
             {approved && !inCheckout && <BasketButton onClick={() => setBasketOpen(true)} />}
           </div>
         </div>
