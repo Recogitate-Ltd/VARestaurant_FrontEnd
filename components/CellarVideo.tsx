@@ -25,7 +25,7 @@ export default function CellarVideo() {
   }, []);
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[-5vh] h-[80vh] overflow-hidden z-0">
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[-5vh] h-[65vh] overflow-hidden z-0">
       <video
         ref={ref}
         className="h-full w-full object-cover"
