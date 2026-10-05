@@ -7,6 +7,7 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import Filters, { ActiveChips, EMPTY_FILTERS, FilterState, LIST_KEYS, activeFilterCount } from "@/components/Filters";
 import Gate from "@/components/Gate";
 import WineCard, { WineCardSkeleton } from "@/components/WineCard";
+import WineTabs from "@/components/WineTabs";
 import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -174,23 +175,11 @@ function Catalogue() {
             ? "Wines on your list, at your prices (ex VAT) · single bottles and cases of 6"
             : "Browse everything we carry · request pricing on any wine that isn't on your list yet"}
         </p>
-        <div role="tablist" aria-label="Which wines" className="mt-5 inline-flex rounded-xl border border-white/15 bg-black/20 p-1">
-          {(["mine", "all"] as const).map((v) => (
-            <button
-              key={v}
-              role="tab"
-              aria-selected={filters.view === v}
-              onClick={() => setFilters({ ...filters, view: v })}
-              className={
-                filters.view === v
-                  ? "h-9 rounded-lg bg-gold px-4 text-[14px] text-black"
-                  : "h-9 rounded-lg px-4 text-[14px] text-ink-soft hover:text-white"
-              }
-            >
-              {v === "mine" ? `My wines${facets && filters.view === "mine" ? ` (${facets.my_wines})` : ""}` : "All wines"}
-            </button>
-          ))}
-        </div>
+        <WineTabs
+          active={filters.view}
+          myWinesCount={facets ? facets.my_wines : null}
+          onSelect={(view) => setFilters({ ...filters, view })}
+        />
         <Link
           href="/accessories"
           className="mt-4 ml-0 sm:ml-3 inline-flex w-fit items-center gap-2 align-middle text-[13px] text-ink-soft hover:text-gold"

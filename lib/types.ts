@@ -88,6 +88,60 @@ export interface PriceRequest {
   created_at: string;
 }
 
+/** A Fine & Rare wine (/api/trade/fine-and-rare/): a premium Bordeaux Index
+ * wine sourced to order. Never priced on the site: restaurants request a quote. */
+export interface FineWine {
+  id: number;
+  name: string;
+  producer: string | null;
+  vintage: string | null;
+  country: string | null;
+  region: string | null;
+  /** BI's colour, e.g. "Red", "White", "Sparkling". */
+  colour: string | null;
+  pack_size: number;
+  bottle_size: string | null;
+  /** "Case of 6 × 75cl" or "Single bottle (150cl)". */
+  format_label: string;
+  abv: string | null;
+  image_url: string | null;
+  grape_variety: string | null;
+  taste_profile: string | null;
+  food_pairing: string | null;
+  /** An open request for this wine is waiting on the team. */
+  requested: boolean;
+  /** "3-4 weeks". */
+  delivery_estimate: string;
+}
+
+export interface FineWineFacets {
+  colours: Facet[];
+  total: number;
+  open_requests: number;
+}
+
+export type FineWineRequestStatus = "open" | "quoted" | "declined";
+
+/** A restaurant's own Fine & Rare request (/api/trade/fine-and-rare/requests/). */
+export interface FineWineRequest {
+  id: number;
+  /** Null once the wine has left Bordeaux Index's list. */
+  wine_id: number | null;
+  wine_name: string;
+  producer: string;
+  vintage: string;
+  format_label: string;
+  image_url: string | null;
+  /** Number of cases. */
+  quantity: number;
+  note: string;
+  status: FineWineRequestStatus;
+  status_label: string;
+  response_note: string;
+  resolved_at: string | null;
+  created_at: string;
+}
+
 export interface Paginated<T> {
   count: number;
   total_pages: number;
