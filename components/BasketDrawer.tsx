@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 import { QuantityStepper } from "@/components/AddToBasket";
 import BottleImage from "@/components/BottleImage";
+import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
 import { ButtonLink } from "@/components/ui";
 import { BasketLine, lineHref, useBasket } from "@/lib/basket";
 import { FORMAT_SHORT, contentsSummary, money, packLabel } from "@/lib/format";
@@ -75,7 +76,7 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
 }
 
 export default function BasketDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { lines, total, vat, bottles, accessories } = useBasket();
+  const { lines, subtotal, total, bottles, accessories } = useBasket();
 
   useEffect(() => {
     if (!open) return;
@@ -129,14 +130,9 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
               <BasketLines compact />
             </div>
             <footer className="border-t border-white/10 bg-surface px-5 py-4 space-y-3">
-              <div className="flex justify-between text-[13px] text-ink-soft">
-                <span>{contentsSummary(bottles, accessories)} · VAT included</span>
-                <span>{money(vat)}</span>
-              </div>
-              <div className="flex justify-between items-baseline">
-                <span className="text-[15px] font-medium">Total inc VAT</span>
-                <span className="font-display text-[26px] font-medium text-white">{money(total)}</span>
-              </div>
+              <p className="text-[13px] text-ink-soft">{contentsSummary(bottles, accessories)}</p>
+              <BasketSummary subtotal={subtotal} total={total} hasAccessories={accessories > 0} />
+              <MinimumOrderNote total={total} />
               <ButtonLink href="/checkout" size="lg" className="w-full">
                 Checkout
               </ButtonLink>

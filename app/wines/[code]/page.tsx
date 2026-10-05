@@ -107,7 +107,7 @@ function Detail() {
               <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">
                 {wine.assigned ? "Order" : "Your price"}
               </p>
-              {wine.assigned && <p className="text-[12px] text-ink-faint">Your prices, inc VAT</p>}
+              {wine.assigned && <p className="text-[12px] text-ink-faint">Your prices, ex VAT</p>}
             </div>
             <AddToBasket wine={wine} />
             {wine.assigned && (

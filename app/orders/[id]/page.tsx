@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
 import BottleImage from "@/components/BottleImage";
+import { VatBreakdown } from "@/components/OrderTotals";
 import Gate from "@/components/Gate";
 import { Alert, PageSpinner, PaymentBadge } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -131,7 +132,8 @@ function OrderView() {
                 </Link>
                 <p className="text-[13px] text-ink-soft">
                   {item.quantity} × {item.format_label}
-                  {item.size ? ` · ${item.size}` : ""} · {money(item.unit_price)} each
+                  {item.size ? ` · ${item.size}` : ""} · {money(item.unit_price)} each{" "}
+                  {item.vat_included ? "inc VAT" : "ex VAT"}
                 </p>
                 <p className="text-[12px] text-ink-faint">
                   {item.item_type === "accessory"
@@ -144,14 +146,15 @@ function OrderView() {
           ))}
         </ul>
         <div className="border-t border-white/10 p-5 space-y-1.5">
-          <div className="flex justify-between text-[14px] text-ink-soft">
-            <span>{order.total_bottles} bottle{order.total_bottles === 1 ? "" : "s"} · VAT included (20%)</span>
-            <span>{money(order.vat_amount)}</span>
-          </div>
-          <div className="flex justify-between items-baseline">
-            <span className="font-medium">Total inc VAT</span>
-            <span className="font-display text-[28px] font-medium text-white">{money(order.total)}</span>
-          </div>
+          <p className="text-[14px] text-ink-soft">
+            {order.total_bottles} bottle{order.total_bottles === 1 ? "" : "s"}
+          </p>
+          <VatBreakdown
+            subtotal={order.subtotal}
+            vat={order.vat_amount}
+            total={order.total}
+            totalClassName="text-[28px]"
+          />
         </div>
       </section>
 

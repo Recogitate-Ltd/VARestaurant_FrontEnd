@@ -6,17 +6,30 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LineThumb, lineDetail } from "@/components/BasketDrawer";
 import Gate from "@/components/Gate";
+import { MinimumOrderNote, VatBreakdown, underMinimum } from "@/components/OrderTotals";
 import { Alert, Button, ButtonLink, Field, PageSpinner, TextArea } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { money } from "@/lib/format";
+import { MIN_ORDER_TOTAL, money } from "@/lib/format";
 import type { FormatCode, Order } from "@/lib/types";
 
 interface Quote {
-  lines: { product_code: string; format: FormatCode; quantity: number; unit_price: string; line_total: string }[];
-  total: string;
+  lines: {
+    product_code: string;
+    format: FormatCode;
+    quantity: number;
+    unit_price: string;
+    line_total: string;
+    vat_included: boolean;
+  }[];
+  /** Before VAT. */
+  subtotal: string;
   vat_amount: string;
+  /** Including VAT. */
+  total: string;
+  /** Inc VAT. */
+  minimum_order_total: string;
 }
 
 function Checkout() {
@@ -125,8 +138,11 @@ function Checkout() {
     }
   };
 
+  const subtotal = quote ? Number(quote.subtotal) : basket.subtotal;
   const total = quote ? Number(quote.total) : basket.total;
   const vat = quote ? Number(quote.vat_amount) : basket.vat;
+  const minimum = quote ? Number(quote.minimum_order_total) : MIN_ORDER_TOTAL;
+  const belowMinimum = underMinimum(total, minimum);
   const terms = account?.payment_terms_days ?? 30;
   const invoiceTo = account?.accounts_email || account?.email;
 
@@ -234,6 +250,7 @@ function Checkout() {
                     <p className="font-medium leading-snug line-clamp-2">{l.name}</p>
                     <p className="text-ink-faint">
                       {l.quantity} × {lineDetail(l)} · {money(l.unit_price)}
+                      {l.format === "accessory" ? " inc VAT" : " ex VAT"}
                     </p>
                   </div>
                   <p className="text-[14px] font-medium whitespace-nowrap">{money(Number(l.unit_price) * l.quantity)}</p>
@@ -251,16 +268,19 @@ function Checkout() {
                   <span>{basket.accessories}</span>
                 </div>
               )}
-              <div className="flex justify-between text-[14px] text-ink-soft">
-                <span>VAT included (20%)</span>
-                <span>{money(vat)}</span>
-              </div>
-              <div className="flex justify-between items-baseline pt-1">
-                <span className="font-medium">Total inc VAT</span>
-                <span className="font-display text-[30px] font-medium text-white">{money(total)}</span>
-              </div>
+              <VatBreakdown subtotal={subtotal} vat={vat} total={total} />
+              {basket.accessories > 0 && (
+                <p className="text-[12px] text-ink-faint">Glassware prices already include VAT; wine has 20% VAT added.</p>
+              )}
+              <MinimumOrderNote total={total} minimum={minimum} />
               {error && <Alert tone="error">{error}</Alert>}
-              <Button type="submit" size="lg" className="w-full" loading={placing} disabled={problems.length > 0 || !quote}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={placing}
+                disabled={problems.length > 0 || !quote || belowMinimum}
+              >
                 <Lock className="h-4 w-4" />
                 Place order · pay in {terms} days
               </Button>

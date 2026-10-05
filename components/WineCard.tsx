@@ -48,7 +48,7 @@ export default function WineCard({ wine }: { wine: Wine }) {
         <div className="mt-auto pt-3">
           {wine.from_price && (
             <p className="mb-2 text-[12px] text-ink-faint">
-              From <span className="text-ink font-semibold">{money(wine.from_price)}</span> a bottle inc VAT
+              From <span className="text-ink font-semibold">{money(wine.from_price)}</span> a bottle ex VAT
             </p>
           )}
           <AddToBasket wine={wine} layout="card" />

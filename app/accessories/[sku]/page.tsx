@@ -178,7 +178,6 @@ function Detail() {
               <Spec label="Recommended pour">{item.pour_ml ? `${item.pour_ml} ml` : null}</Spec>
               <Spec label="Pack">{packLabel(item.pack)}</Spec>
               <Spec label="Pieces">{item.pieces > 1 ? item.pieces : null}</Spec>
-              <Spec label="RRP">{money(item.rrp)}</Spec>
               <Spec label="Product code">{item.sku}</Spec>
             </dl>
           </section>

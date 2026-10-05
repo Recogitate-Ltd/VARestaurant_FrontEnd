@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: "Vintage Associates Trade",
     template: "%s · Vintage Associates Trade",
   },
-  description: "Wine ordering for restaurants on 30-day account terms. All prices include VAT.",
+  description: "Wine ordering for restaurants on 30-day account terms. Wine prices are ex VAT; minimum order £450 inc VAT.",
   robots: { index: false, follow: false },
   icons: { icon: "/favicon.png" },
 };

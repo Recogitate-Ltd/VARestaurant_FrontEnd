@@ -1,5 +1,8 @@
-// Mirrors the backend `trade` app serializers (/api/trade/). Prices include VAT.
+// Mirrors the backend `trade` app serializers (/api/trade/).
+// Wine prices are ex VAT (VAT is added at checkout); accessory prices include VAT.
 
+/** Wines are sold as bottles (£10+ a bottle only) and cases of 6. Cases of 3 and
+ * 12 are no longer sold but still appear on older orders. */
 export type FormatCode = "bottle" | "case3" | "case6" | "case12" | "accessory";
 
 export interface WineFormat {
@@ -132,6 +135,8 @@ export interface OrderItem {
   bottles: number;
   unit_price: string;
   line_total: string;
+  /** True when unit_price / line_total include VAT (accessories, and every line on older orders). */
+  vat_included: boolean;
   image_url: string | null;
 }
 
@@ -145,8 +150,11 @@ export interface Order {
   payment_status_label: string;
   fulfilment_status: string;
   fulfilment_status_label: string;
-  total: string;
+  /** Before VAT. */
+  subtotal: string;
   vat_amount: string;
+  /** Including VAT. */
+  total: string;
   total_bottles: number;
   item_count?: number;
   po_number: string;

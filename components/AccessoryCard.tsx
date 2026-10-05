@@ -11,24 +11,14 @@ import { useBasket } from "@/lib/basket";
 import { money, packLabel, withoutBrand } from "@/lib/format";
 import type { Accessory } from "@/lib/types";
 
-/** Our price with the RRP struck through beside it, when we sell below RRP. */
+/** Our price (inc VAT). No RRP or saving is shown. */
 export function AccessoryPrice({ item, size = "md" }: { item: Accessory; size?: "md" | "lg" }) {
-  const below = item.saving_percent !== null && Number(item.price) < Number(item.rrp);
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <span className={clsx("font-semibold text-ink", size === "lg" ? "text-[28px] font-display font-medium text-white" : "text-[17px]")}>
         {money(item.price)}
       </span>
-      {below && (
-        <>
-          <span className={clsx("text-ink-faint line-through", size === "lg" ? "text-[15px]" : "text-[12px]")}>
-            RRP {money(item.rrp)}
-          </span>
-          <span className={clsx("text-ok", size === "lg" ? "text-[14px]" : "text-[12px]")}>
-            Save {item.saving_percent}%
-          </span>
-        </>
-      )}
+      <span className={clsx("text-ink-faint", size === "lg" ? "text-[13px]" : "text-[11px]")}>inc VAT</span>
     </div>
   );
 }
