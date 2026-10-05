@@ -9,6 +9,8 @@ import Gate from "@/components/Gate";
 import WineCard, { WineCardSkeleton } from "@/components/WineCard";
 import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { isMember } from "@/lib/format";
 import type { Facets, Paginated, Wine } from "@/lib/types";
 
 const SORTS = [
@@ -69,6 +71,7 @@ function apiPath(f: FilterState, page: number): string {
 }
 
 function Catalogue() {
+  const { account } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -193,7 +196,7 @@ function Catalogue() {
           className="mt-4 ml-0 sm:ml-3 inline-flex w-fit items-center gap-2 align-middle text-[13px] text-ink-soft hover:text-gold"
         >
           <WineGlass className="h-4 w-4 text-gold" strokeWidth={1.5} />
-          Riedel glassware &amp; decanters at trade prices →
+          Riedel glassware &amp; decanters{isMember(account) ? "" : " at trade prices"} →
         </Link>
         {!!facets?.open_price_requests && (
           <Link

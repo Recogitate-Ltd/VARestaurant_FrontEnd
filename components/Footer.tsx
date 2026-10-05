@@ -1,5 +1,8 @@
+"use client";
+
 import { FullLogo } from "@/components/ui";
-import { SUPPORT_EMAIL, SUPPORT_PHONE } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { SUPPORT_EMAIL, SUPPORT_PHONE, isMember } from "@/lib/format";
 
 /*
  * Mirrors the investment app's footer (WineApp-mobile components/layout/footer.tsx):
@@ -9,6 +12,7 @@ import { SUPPORT_EMAIL, SUPPORT_PHONE } from "@/lib/format";
 const LINK = "text-[10px] text-white tracking-[1.2px] uppercase font-light text-center hover:text-gold-dark";
 
 export default function Footer() {
+  const { account } = useAuth();
   const tel = SUPPORT_PHONE.replace(/\s/g, "").replace(/^0/, "+44");
   return (
     <footer className="relative z-10 mt-20 w-full bg-base flex flex-col items-center justify-center gap-4 py-10 pb-28 lg:pb-10">
@@ -33,7 +37,9 @@ export default function Footer() {
         </a>
       </div>
       <p className="px-6 text-[10px] tracking-[1.2px] uppercase font-light text-ink-faint text-center">
-        Trade customers only · Wine prices ex VAT · Minimum order £450 inc VAT · Please drink responsibly
+        {isMember(account)
+          ? "Wine prices ex VAT · Please drink responsibly"
+          : "Trade customers only · Wine prices ex VAT · Minimum order £450 inc VAT · Please drink responsibly"}
       </p>
     </footer>
   );

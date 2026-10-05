@@ -134,7 +134,7 @@ function Detail() {
             <AddAccessory item={item} layout="full" />
             <p className="text-[12px] text-ink-faint">
               {isMember(account)
-                ? "Trade price inc VAT · billed separately by our team"
+                ? "Price inc VAT · billed separately by our team"
                 : "Trade price inc VAT · invoiced with your order · 30 days to pay"}
             </p>
           </div>
