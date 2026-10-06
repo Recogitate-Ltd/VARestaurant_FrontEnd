@@ -7,7 +7,7 @@ import { ButtonLink, PageSpinner } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
 import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
-import { contentsSummary, homePath } from "@/lib/format";
+import { browseLabel, contentsSummary, homePath } from "@/lib/format";
 
 function Basket() {
   const { lines, subtotal, total, bottles, accessories, ready } = useBasket();
@@ -20,7 +20,7 @@ function Basket() {
         <div className="mt-6 rounded-2xl bg-surface p-10 text-center ring-1 ring-white/10">
           <p className="font-display text-[22px] text-white">Your basket is empty</p>
           <ButtonLink href={homePath(account)} variant="secondary" className="mt-5">
-            {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
+            {browseLabel(account)}
           </ButtonLink>
         </div>
       ) : (

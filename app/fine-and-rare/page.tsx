@@ -256,7 +256,7 @@ function FineAndRare() {
 
 export default function FineAndRarePage() {
   return (
-    <Gate wines restaurant>
+    <Gate sections={["fine-and-rare"]}>
       <Suspense>
         <FineAndRare />
       </Suspense>

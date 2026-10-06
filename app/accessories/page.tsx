@@ -256,7 +256,7 @@ function Accessories() {
 
 export default function AccessoriesPage() {
   return (
-    <Gate>
+    <Gate sections={["accessories"]}>
       <Suspense>
         <Accessories />
       </Suspense>

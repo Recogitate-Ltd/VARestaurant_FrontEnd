@@ -11,7 +11,7 @@ import { Alert, Button, ButtonLink, Field, PageSpinner, TextArea } from "@/compo
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { homePath, isMember, minimumOrderFor, money } from "@/lib/format";
+import { browseLabel, homePath, isMember, minimumOrderFor, money } from "@/lib/format";
 import type { FormatCode, Order } from "@/lib/types";
 
 interface Quote {
@@ -97,7 +97,7 @@ function Checkout() {
       <main className="mx-auto max-w-xl px-6 py-20 text-center">
         <p className="font-display text-[28px] text-white">Your basket is empty</p>
         <ButtonLink href={homePath(account)} variant="secondary" className="mt-6">
-          {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
+          {browseLabel(account)}
         </ButtonLink>
       </main>
     );

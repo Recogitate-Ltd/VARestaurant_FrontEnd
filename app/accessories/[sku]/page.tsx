@@ -215,7 +215,7 @@ function Detail() {
 
 export default function AccessoryDetailPage() {
   return (
-    <Gate>
+    <Gate sections={["accessories"]}>
       <Detail />
     </Gate>
   );

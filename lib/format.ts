@@ -36,14 +36,48 @@ export function isMember(account: Pick<TradeAccount, "kind"> | null | undefined)
   return account?.kind === "member";
 }
 
-/** Where an approved account starts: the wine list, or glassware when wines are off. */
-/** Fine & Rare is for restaurants: members reach these wines in their app's Wine Shop. */
-export function seesFineAndRare(account: Pick<TradeAccount, "kind" | "wines_enabled"> | null | undefined): boolean {
-  return !!account && account.kind !== "member" && account.wines_enabled !== false;
+/** The sections of the site an account can be shown. The team switches each on or off per account. */
+export type Sections = Pick<TradeAccount, "wines_enabled" | "fine_and_rare_enabled" | "accessories_enabled">;
+
+type SectionInfo = { path: string; title: string; browse: string };
+
+/** In the order the site shows them. */
+const SECTIONS: { key: keyof Sections; info: SectionInfo }[] = [
+  { key: "wines_enabled", info: { path: "/wines", title: "Wines", browse: "Browse wines" } },
+  { key: "fine_and_rare_enabled", info: { path: "/fine-and-rare", title: "Fine & Rare", browse: "Browse Fine & Rare" } },
+  { key: "accessories_enabled", info: { path: "/accessories", title: "Accessories", browse: "Browse glassware" } },
+];
+
+/** A switch missing from an older API response (or no account loaded yet) counts as on. */
+function enabled(account: Partial<Sections> | null | undefined, key: keyof Sections): boolean {
+  return !account || account[key] !== false;
 }
 
-export function homePath(account: Pick<TradeAccount, "wines_enabled"> | null | undefined): string {
-  return account && account.wines_enabled === false ? "/accessories" : "/wines";
+export function seesWines(account: Partial<Sections> | null | undefined): boolean {
+  return enabled(account, "wines_enabled");
+}
+
+export function seesFineAndRare(account: Partial<Sections> | null | undefined): boolean {
+  return enabled(account, "fine_and_rare_enabled");
+}
+
+export function seesAccessories(account: Partial<Sections> | null | undefined): boolean {
+  return enabled(account, "accessories_enabled");
+}
+
+/** The sections this account sees, in site order. Empty when the team has switched them all off. */
+export function visibleSections(account: Partial<Sections> | null | undefined): SectionInfo[] {
+  return SECTIONS.filter((s) => enabled(account, s.key)).map((s) => s.info);
+}
+
+/** Where an approved account starts: the first section it can see, or its orders when none is on. */
+export function homePath(account: Partial<Sections> | null | undefined): string {
+  return visibleSections(account)[0]?.path ?? "/orders";
+}
+
+/** "Browse wines", "Browse Fine & Rare" or "Browse glassware": the first section the account can see. */
+export function browseLabel(account: Partial<Sections> | null | undefined): string {
+  return visibleSections(account)[0]?.browse ?? "Your orders";
 }
 
 /** The minimum order (inc VAT) for this account. Members have none. */

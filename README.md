@@ -39,10 +39,13 @@ message for pending, rejected and suspended accounts.
 Admins can also give selected Vintage Associates members (investment-app
 clients) access from the admin portal (**Restaurant Trade → Restaurants &
 members → Give a member access**). Members log in here with their usual
-email and password. They browse glassware, and wines too if the admin
-switches that on (at the prices added to their list). At checkout there is no
-invoice and no minimum order: the order is placed, the team is emailed, and
-the member is billed separately.
+email and password. The admin chooses what each member sees with three
+switches, **Wines**, **Fine & Rare** and **Accessories**, so a member can be
+shown accessories only, say. Wines are at the prices added to their list.
+The header, home page and empty-basket links only show the sections that are
+on, and the API refuses the rest. At checkout there is no invoice and no
+minimum order: the order is placed, the team is emailed, and the member is
+billed separately.
 
 ## Local development
 

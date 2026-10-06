@@ -7,7 +7,7 @@ import Gate from "@/components/Gate";
 import { Alert, Button, ButtonLink, PageSpinner, PaymentBadge } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { formatDate, homePath, isMember, isOverdue, money, paymentLabel } from "@/lib/format";
+import { browseLabel, formatDate, homePath, isMember, isOverdue, money, paymentLabel } from "@/lib/format";
 import type { Order, Paginated } from "@/lib/types";
 
 function Orders() {
@@ -68,7 +68,7 @@ function Orders() {
           <p className="font-display text-[24px] text-white">No orders yet</p>
           <p className="mt-2 text-[14px] text-ink-soft">Your orders and invoices will appear here.</p>
           <ButtonLink href={homePath(account)} className="mt-6">
-            {account?.wines_enabled === false ? "Browse glassware" : "Browse wines"}
+            {browseLabel(account)}
           </ButtonLink>
         </div>
       ) : (
