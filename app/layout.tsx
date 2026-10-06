@@ -6,13 +6,15 @@ import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // Absolute base for the Open Graph image URL; WhatsApp and friends reject
+  // relative ones.
+  metadataBase: new URL("https://restaurant.vintage-associates.com"),
   title: {
     default: "Vintage Associates Trade",
     template: "%s · Vintage Associates Trade",
   },
   description: "Wine ordering for restaurants on 30-day account terms. Wine prices are ex VAT; minimum order £450 inc VAT.",
   robots: { index: false, follow: false },
-  icons: { icon: "/favicon.png" },
 };
 
 export const viewport: Viewport = {
