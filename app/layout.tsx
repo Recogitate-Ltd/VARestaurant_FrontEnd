@@ -13,7 +13,15 @@ export const metadata: Metadata = {
     default: "Vintage Associates Trade",
     template: "%s · Vintage Associates Trade",
   },
-  description: "Wine ordering for restaurants on 30-day account terms. Wine prices are ex VAT; minimum order £450 inc VAT.",
+  description:
+    "Your wine list, on account. Over 2,300 wines from 25 countries at trade prices, by the bottle or the case, delivered to your restaurant on 30-day terms.",
+  // Shown in link previews (WhatsApp, iMessage, Slack). Short enough that the
+  // preview doesn't cut it mid-sentence.
+  openGraph: {
+    siteName: "Vintage Associates Trade",
+    title: "Vintage Associates Trade",
+    description: "Your wine list, on account. 2,300+ wines at trade prices, by the bottle or the case.",
+  },
   robots: { index: false, follow: false },
 };
 
