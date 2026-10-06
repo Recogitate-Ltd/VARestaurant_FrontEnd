@@ -273,7 +273,7 @@ function Detail() {
 
 export default function FineWineDetailPage() {
   return (
-    <Gate wines restaurant>
+    <Gate sections={["fine-and-rare"]}>
       <Suspense>
         <Detail />
       </Suspense>

@@ -9,7 +9,7 @@ import BasketDrawer from "@/components/BasketDrawer";
 import { Logo } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useBasket } from "@/lib/basket";
-import { homePath, money } from "@/lib/format";
+import { homePath, money, seesAccessories, seesFineAndRare, seesWines } from "@/lib/format";
 
 /*
  * Mirrors the investment app's header (WineApp-mobile components/layout/header.tsx):
@@ -84,7 +84,10 @@ export default function Header() {
   const approved = account?.status === "approved";
   const signedIn = state === "signed-in";
   const inCheckout = pathname.startsWith("/checkout");
-  const wines = approved && account?.wines_enabled !== false;
+  // Each section can be switched off per account by the team.
+  const wines = approved && seesWines(account);
+  const fineAndRare = approved && seesFineAndRare(account);
+  const accessories = approved && seesAccessories(account);
   const homeHref = approved ? homePath(account) : "/";
 
   useEffect(() => {
@@ -109,11 +112,13 @@ export default function Header() {
   }, [menuOpen]);
 
   // Approved accounts get six links, split three either side of the VA mark so
-  // the bar balances around it.
+  // the bar balances around it. Fine & Rare normally sits as a tab on the wine
+  // list, so it only needs its own link when wines are off.
   const left: NavItem[] = approved
     ? [
         ...(wines ? [{ title: "Wines", href: "/wines" }] : []),
-        { title: "Accessories", href: "/accessories" },
+        ...(fineAndRare && !wines ? [{ title: "Fine & Rare", href: "/fine-and-rare" }] : []),
+        ...(accessories ? [{ title: "Accessories", href: "/accessories" }] : []),
         { title: "Orders", href: "/orders" },
       ]
     : signedIn
@@ -121,7 +126,7 @@ export default function Header() {
       : [{ title: "How it works", href: "/" }];
   const right: NavItem[] = signedIn
     ? [
-        ...(wines ? [{ title: "Requests", href: "/requests" }] : []),
+        ...(wines || fineAndRare ? [{ title: "Requests", href: "/requests" }] : []),
         { title: "Account", href: "/account" },
         { title: "Logout", onClick: logout },
       ]

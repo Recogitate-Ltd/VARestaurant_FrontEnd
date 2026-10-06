@@ -9,7 +9,7 @@ import Gate from "@/components/Gate";
 import { Alert, Badge, Button, ButtonLink, PageSpinner } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { formatDate, seesFineAndRare } from "@/lib/format";
+import { formatDate, seesFineAndRare, seesWines } from "@/lib/format";
 import type { FineWineRequest, Paginated, PriceRequest, PriceRequestStatus } from "@/lib/types";
 
 const TABS = [
@@ -132,10 +132,15 @@ function Requests() {
   const { account } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Pricing requests belong to the wine list and quotes to Fine & Rare: each
+  // tab shows only when that section is on for the account.
+  const showWines = seesWines(account);
   const showFine = seesFineAndRare(account);
-  const tabs = TABS.filter((t) => t.value !== "fine" || showFine);
+  const tabs = TABS.filter((t) => (t.value === "fine" ? showFine : showWines));
   const wanted = searchParams.get("tab");
-  const tab: Tab = wanted === "all" || (wanted === "fine" && showFine) ? wanted : "open";
+  const fallback: Tab = showWines ? "open" : "fine";
+  const tab: Tab =
+    (wanted === "all" || wanted === "open") && showWines ? wanted : wanted === "fine" && showFine ? wanted : fallback;
   const setTab = (t: Tab) => router.replace(t === "open" ? "/requests" : `/requests?tab=${t}`, { scroll: false });
   const [requests, setRequests] = useState<Row[] | null>(null);
   const [count, setCount] = useState(0);
@@ -263,7 +268,7 @@ function Requests() {
 
 export default function RequestsPage() {
   return (
-    <Gate wines>
+    <Gate sections={["wines", "fine-and-rare"]}>
       <Suspense>
         <Requests />
       </Suspense>

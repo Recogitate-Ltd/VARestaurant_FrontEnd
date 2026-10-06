@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { useAuth } from "@/lib/auth";
-import { seesFineAndRare } from "@/lib/format";
+import { seesFineAndRare, seesWines } from "@/lib/format";
 
 export type WineTab = "mine" | "all" | "fine";
 
@@ -14,7 +14,8 @@ const IDLE = `${TAB} text-ink-soft hover:text-white`;
 /**
  * "My wines · All wines · Fine & Rare" above the wine lists. The first two
  * switch the catalogue view in place (``onSelect``); Fine & Rare is its own
- * page and only shows for restaurant accounts.
+ * page. Each shows only when that section is on for the account, and the
+ * strip disappears when there is nothing to switch between.
  */
 export default function WineTabs({
   active,
@@ -27,14 +28,19 @@ export default function WineTabs({
 }) {
   const { account } = useAuth();
   const tabs: { value: WineTab; label: string; href: string }[] = [
-    {
-      value: "mine",
-      label: `My wines${active === "mine" && myWinesCount != null ? ` (${myWinesCount})` : ""}`,
-      href: "/wines",
-    },
-    { value: "all", label: "All wines", href: "/wines?view=all" },
+    ...(seesWines(account)
+      ? [
+          {
+            value: "mine" as const,
+            label: `My wines${active === "mine" && myWinesCount != null ? ` (${myWinesCount})` : ""}`,
+            href: "/wines",
+          },
+          { value: "all" as const, label: "All wines", href: "/wines?view=all" },
+        ]
+      : []),
     ...(seesFineAndRare(account) ? [{ value: "fine" as const, label: "Fine & Rare", href: "/fine-and-rare" }] : []),
   ];
+  if (tabs.length < 2) return null;
   return (
     <div role="tablist" aria-label="Which wines" className="mt-5 inline-flex max-w-full overflow-x-auto rounded-xl border border-white/15 bg-black/20 p-1">
       {tabs.map((t) =>

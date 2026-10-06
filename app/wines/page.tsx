@@ -11,7 +11,7 @@ import WineTabs from "@/components/WineTabs";
 import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { isMember } from "@/lib/format";
+import { isMember, seesAccessories } from "@/lib/format";
 import type { Facets, Paginated, Wine } from "@/lib/types";
 
 const SORTS = [
@@ -180,13 +180,15 @@ function Catalogue() {
           myWinesCount={facets ? facets.my_wines : null}
           onSelect={(view) => setFilters({ ...filters, view })}
         />
-        <Link
-          href="/accessories"
-          className="mt-4 ml-0 sm:ml-3 inline-flex w-fit items-center gap-2 align-middle text-[13px] text-ink-soft hover:text-gold"
-        >
-          <WineGlass className="h-4 w-4 text-gold" strokeWidth={1.5} />
-          Riedel glassware &amp; decanters{isMember(account) ? "" : " at trade prices"} →
-        </Link>
+        {seesAccessories(account) && (
+          <Link
+            href="/accessories"
+            className="mt-4 ml-0 sm:ml-3 inline-flex w-fit items-center gap-2 align-middle text-[13px] text-ink-soft hover:text-gold"
+          >
+            <WineGlass className="h-4 w-4 text-gold" strokeWidth={1.5} />
+            Riedel glassware &amp; decanters{isMember(account) ? "" : " at trade prices"} →
+          </Link>
+        )}
         {!!facets?.open_price_requests && (
           <Link
             href="/requests"
@@ -359,7 +361,7 @@ function Catalogue() {
 
 export default function WinesPage() {
   return (
-    <Gate wines>
+    <Gate sections={["wines"]}>
       <Suspense>
         <Catalogue />
       </Suspense>

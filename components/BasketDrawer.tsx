@@ -9,7 +9,7 @@ import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
 import { ButtonLink } from "@/components/ui";
 import { BasketLine, lineHref, useBasket } from "@/lib/basket";
 import { useAuth } from "@/lib/auth";
-import { FORMAT_SHORT, contentsSummary, isMember, money, packLabel } from "@/lib/format";
+import { FORMAT_SHORT, contentsSummary, isMember, money, packLabel, seesAccessories, seesWines, visibleSections } from "@/lib/format";
 
 /** "Case of 6 · 75cl" for wine, "Set of 2" for accessories. */
 export function lineDetail(l: BasketLine): string {
@@ -79,7 +79,8 @@ export function BasketLines({ compact = false }: { compact?: boolean }) {
 export default function BasketDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lines, subtotal, total, bottles, accessories } = useBasket();
   const { account } = useAuth();
-  const wines = account?.wines_enabled !== false;
+  const sections = visibleSections(account);
+  const wines = seesWines(account);
 
   useEffect(() => {
     if (!open) return;
@@ -117,17 +118,20 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
             <div>
               <p className="font-display text-[22px] text-white">Your basket is empty</p>
               <p className="mt-2 text-[14px] text-ink-soft">
-                {wines ? "Browse the list and add bottles or cases." : "Browse our glassware and decanters."}
+                {wines
+                  ? "Browse the list and add bottles or cases."
+                  : seesAccessories(account)
+                    ? "Browse our glassware and decanters."
+                    : "Anything you order will appear here."}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {wines && (
-                  <ButtonLink href="/wines" variant="secondary">
-                    Browse wines
-                  </ButtonLink>
-                )}
-                <ButtonLink href="/accessories" variant={wines ? "ghost" : "secondary"}>
-                  Glassware &amp; decanters
-                </ButtonLink>
+                {sections
+                  .filter((s) => s.path !== "/fine-and-rare")
+                  .map((s, i) => (
+                    <ButtonLink key={s.path} href={s.path} variant={i === 0 ? "secondary" : "ghost"}>
+                      {s.path === "/accessories" ? "Glassware & decanters" : s.browse}
+                    </ButtonLink>
+                  ))}
               </div>
             </div>
           </div>

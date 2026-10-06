@@ -200,8 +200,10 @@ export interface TradeAccount {
   status: AccountStatus;
   /** "member": an investment-app client given access by the team. Orders aren't invoiced here; they're billed separately. */
   kind: "restaurant" | "member";
-  /** False when the account only sees accessories (glassware). */
+  /** Which sections of the site this account sees. The team switches each one on or off per account. */
   wines_enabled: boolean;
+  fine_and_rare_enabled: boolean;
+  accessories_enabled: boolean;
   payment_terms_days: number;
   created_at: string;
 }

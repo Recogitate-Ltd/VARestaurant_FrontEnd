@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { Button, ButtonLink, PageSpinner } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
-import { SUPPORT_EMAIL, SUPPORT_PHONE, formatDate } from "@/lib/format";
+import type { TradeAccount } from "@/lib/types";
+import { SUPPORT_EMAIL, SUPPORT_PHONE, browseLabel, formatDate, homePath, visibleSections } from "@/lib/format";
 
 function Message({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
@@ -17,21 +18,34 @@ function Message({ icon, title, children }: { icon: React.ReactNode; title: stri
   );
 }
 
+/** A section of the site the team can switch on or off per account. */
+export type Section = "wines" | "fine-and-rare" | "accessories";
+
+const SECTION_TITLE: Record<Section, string> = {
+  wines: "Wines aren't",
+  "fine-and-rare": "Fine & Rare isn't",
+  accessories: "Accessories aren't",
+};
+
+function sectionOn(account: TradeAccount, section: Section): boolean {
+  if (section === "wines") return account.wines_enabled !== false;
+  if (section === "fine-and-rare") return account.fine_and_rare_enabled !== false;
+  return account.accessories_enabled !== false;
+}
+
 /**
  * Wraps pages that need an approved trade account. Signed-out visitors go to
  * the login page; pending, rejected and suspended accounts see why they
- * can't order yet. ``wines`` pages also need wines switched on for the
- * account (some members only see glassware). ``restaurant`` pages (Fine &
- * Rare) are for restaurant accounts only, not members.
+ * can't order yet. A page can also name the ``sections`` it belongs to: the
+ * account must have at least one of them switched on (the team can show a
+ * member only accessories, say), otherwise it is pointed at what it can see.
  */
 export default function Gate({
   children,
-  wines = false,
-  restaurant = false,
+  sections = [],
 }: {
   children: React.ReactNode;
-  wines?: boolean;
-  restaurant?: boolean;
+  sections?: Section[];
 }) {
   const { state, account, noTradeAccount, logout } = useAuth();
   const router = useRouter();
@@ -104,34 +118,24 @@ export default function Gate({
     );
   }
 
-  if (wines && !account.wines_enabled) {
+  if (sections.length && !sections.some((section) => sectionOn(account, section))) {
+    const visible = visibleSections(account);
+    const title =
+      sections.length === 1 ? `${SECTION_TITLE[sections[0]]} on your account` : "This section isn't on your account";
     return (
-      <Message icon={<Wine className="h-6 w-6" />} title="Wines aren't on your account">
+      <Message icon={<Wine className="h-6 w-6" />} title={title}>
         <p>
-          You can browse and order our glassware. To order wine, please contact us on {SUPPORT_PHONE} or{" "}
+          {visible.length
+            ? `You can browse and order from ${visible.map((v) => v.title).join(" and ")}. For anything else, please contact us on `
+            : "To browse and order, please contact us on "}
+          {SUPPORT_PHONE} or{" "}
           <a className="underline" href={`mailto:${SUPPORT_EMAIL}`}>
             {SUPPORT_EMAIL}
           </a>
           .
         </p>
         <div className="pt-2">
-          <ButtonLink href="/accessories">Browse glassware</ButtonLink>
-        </div>
-      </Message>
-    );
-  }
-
-  if (restaurant && account.kind === "member") {
-    return (
-      <Message icon={<Wine className="h-6 w-6" />} title="Fine & Rare is in your app">
-        <p>
-          As a Vintage Associates member you can browse and buy our fine and rare wines in the Wine Shop in your
-          app.
-        </p>
-        <div className="pt-2">
-          <ButtonLink href={account.wines_enabled ? "/wines" : "/accessories"} variant="secondary">
-            Back to the list
-          </ButtonLink>
+          <ButtonLink href={homePath(account)}>{browseLabel(account)}</ButtonLink>
         </div>
       </Message>
     );

@@ -177,7 +177,7 @@ function Detail() {
 
 export default function WineDetailPage() {
   return (
-    <Gate wines>
+    <Gate sections={["wines"]}>
       <Detail />
     </Gate>
   );
