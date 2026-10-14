@@ -202,7 +202,15 @@ export interface TradeAccount {
   kind: "restaurant" | "member";
   /** False when the account only sees accessories (glassware). */
   wines_enabled: boolean;
+  /** When invoices fall due: N days after the invoice, or the end of the following month. */
+  payment_terms: "days" | "end_of_following_month";
   payment_terms_days: number;
+  /** e.g. "14 days from the invoice date". */
+  payment_terms_label: string;
+  /** "stripe": invoice with a pay link. "email": our PDF invoice, paid by bank transfer. */
+  invoice_method: "stripe" | "email";
+  /** We email a statement of the month's invoices at the end of each month. */
+  send_statements: boolean;
   created_at: string;
 }
 
@@ -258,6 +266,13 @@ export interface Order {
   stripe_invoice_number: string;
   hosted_invoice_url: string;
   invoice_pdf_url: string;
+  /** "" until invoiced. "email": our PDF invoice, paid by bank transfer. */
+  invoice_method: "stripe" | "email" | "";
+  /** The invoice number, whichever way it was invoiced. */
+  invoice_number: string;
+  invoiced_at: string | null;
+  /** Our PDF invoice can be downloaded from `/api/trade/orders/<id>/invoice/`. */
+  has_invoice_pdf: boolean;
   due_date: string | null;
   paid_at: string | null;
   created_at: string;
@@ -309,4 +324,19 @@ export interface AccessoryFacets {
   collections: Facet[];
   price_range: { min: string; max: string } | null;
   total: number;
+}
+
+/** A monthly statement we've emailed (/api/trade/statements/). */
+export interface Statement {
+  id: number;
+  reference: string;
+  /** "2026-10" */
+  month: string;
+  period: string;
+  statement_date: string;
+  due_date: string;
+  invoice_count: number;
+  invoiced_total: string;
+  balance_due: string;
+  sent_at: string | null;
 }

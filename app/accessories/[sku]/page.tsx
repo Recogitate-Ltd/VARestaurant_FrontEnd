@@ -12,7 +12,7 @@ import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { keepScrollOnNextPage, useScrollToTop } from "@/lib/scroll";
-import { categoryLabel, isMember, money, packLabel, withoutBrand } from "@/lib/format";
+import { categoryLabel, isMember, money, packLabel, termsShort, withoutBrand } from "@/lib/format";
 import type { AccessoryDetail } from "@/lib/types";
 
 function Spec({ label, children }: { label: string; children: React.ReactNode }) {
@@ -138,7 +138,7 @@ function Detail() {
             <p className="text-[12px] text-ink-faint">
               {isMember(account)
                 ? "Price inc VAT · billed separately by our team"
-                : "Trade price inc VAT · invoiced with your order · 30 days to pay"}
+                : `Trade price inc VAT · invoiced with your order · ${termsShort(account)}`}
             </p>
           </div>
 

@@ -72,6 +72,34 @@ export function buildQuery(query?: Query): string {
   return s ? `?${s}` : "";
 }
 
+/** Download a file (e.g. a PDF invoice) from an authenticated endpoint. */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const token = getToken();
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Token ${token}` } : {} });
+  } catch {
+    throw new ApiError(0, null, "We couldn't reach the server. Check your connection and try again.");
+  }
+  if (!response.ok) {
+    let data: unknown = null;
+    try {
+      data = await response.json();
+    } catch {
+      // not JSON
+    }
+    throw new ApiError(response.status, data, messageFrom(data, `Download failed (${response.status}).`));
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export async function api<T>(
   path: string,
   options: { method?: string; body?: unknown; query?: Query; auth?: boolean } = {}

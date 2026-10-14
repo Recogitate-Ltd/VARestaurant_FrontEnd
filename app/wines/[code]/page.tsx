@@ -12,7 +12,7 @@ import { Alert, Badge, PageSpinner } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useScrollToTop } from "@/lib/scroll";
-import { isMember, typeColour, typeLabel } from "@/lib/format";
+import { isMember, termsShort, typeColour, typeLabel } from "@/lib/format";
 import type { WineDetail } from "@/lib/types";
 
 function Spec({ label, children }: { label: string; children: React.ReactNode }) {
@@ -116,7 +116,7 @@ function Detail() {
             <AddToBasket wine={wine} />
             {wine.assigned && (
               <p className="mt-3 text-[12px] text-ink-faint">
-                {isMember(account) ? "Billed separately by our team" : "Invoiced on ordering · 30 days to pay"}
+                {isMember(account) ? "Billed separately by our team" : `Invoiced on ordering · ${termsShort(account)}`}
               </p>
             )}
           </div>
