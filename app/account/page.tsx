@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import Statements from "@/components/Statements";
 import { Alert, Button, Field, PageSpinner, TextArea } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { formatDate } from "@/lib/format";
+import { formatDate, termsDue } from "@/lib/format";
 import type { TradeAccount } from "@/lib/types";
 
 const STATUS_TEXT: Record<string, { label: string; tone: "success" | "warning" | "error" }> = {
@@ -102,7 +103,11 @@ export default function AccountPage() {
           (account.kind === "member" ? (
             <> · orders are billed separately by our team</>
           ) : (
-            <> · invoices payable within {account.payment_terms_days} days</>
+            <>
+              {" "}
+              · invoices payable {termsDue(account)}
+              {account.invoice_method === "email" && ", by bank transfer"}
+            </>
           ))}
         {account.status === "pending" && <> · applied {formatDate(account.created_at)}</>}
       </Alert>
@@ -164,6 +169,8 @@ export default function AccountPage() {
           </Button>
         </div>
       </form>
+
+      {account.kind !== "member" && account.status !== "pending" && <Statements />}
     </main>
   );
 }

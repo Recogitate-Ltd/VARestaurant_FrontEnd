@@ -9,7 +9,7 @@ import { BasketSummary, MinimumOrderNote } from "@/components/OrderTotals";
 import { ButtonLink } from "@/components/ui";
 import { BasketLine, lineHref, useBasket } from "@/lib/basket";
 import { useAuth } from "@/lib/auth";
-import { FORMAT_SHORT, contentsSummary, isMember, money, packLabel } from "@/lib/format";
+import { FORMAT_SHORT, contentsSummary, isMember, money, packLabel, termsDue } from "@/lib/format";
 
 /** "Case of 6 · 75cl" for wine, "Set of 2" for accessories. */
 export function lineDetail(l: BasketLine): string {
@@ -144,7 +144,9 @@ export default function BasketDrawer({ open, onClose }: { open: boolean; onClose
                 Checkout
               </ButtonLink>
               <p className="text-center text-[12px] text-ink-faint">
-                {isMember(account) ? "Nothing to pay now: we'll arrange billing with you" : "Pay by invoice within 30 days"}
+                {isMember(account)
+                  ? "Nothing to pay now: we'll arrange billing with you"
+                  : `Pay by invoice ${termsDue(account)}`}
               </p>
             </footer>
           </>

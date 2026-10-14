@@ -47,6 +47,20 @@ export function homePath(account: Pick<TradeAccount, "wines_enabled"> | null | u
 }
 
 /** The minimum order (inc VAT) for this account. Members have none. */
+type Terms = Pick<TradeAccount, "payment_terms" | "payment_terms_days">;
+
+/** When invoices are due, for a sentence: "within 30 days" / "by the end of the month after the invoice". */
+export function termsDue(account: Terms | null | undefined): string {
+  if (account?.payment_terms === "end_of_following_month") return "by the end of the month after the invoice";
+  return `within ${account?.payment_terms_days ?? 30} days`;
+}
+
+/** Short form for buttons and notes: "30 days to pay" / "pay by end of next month". */
+export function termsShort(account: Terms | null | undefined): string {
+  if (account?.payment_terms === "end_of_following_month") return "pay by end of next month";
+  return `${account?.payment_terms_days ?? 30} days to pay`;
+}
+
 export function minimumOrderFor(account: Pick<TradeAccount, "kind"> | null | undefined): number {
   return isMember(account) ? 0 : MIN_ORDER_TOTAL;
 }

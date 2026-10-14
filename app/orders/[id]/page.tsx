@@ -8,7 +8,7 @@ import BottleImage from "@/components/BottleImage";
 import { VatBreakdown } from "@/components/OrderTotals";
 import Gate from "@/components/Gate";
 import { Alert, PageSpinner, PaymentBadge } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, downloadFile } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { SUPPORT_EMAIL, SUPPORT_PHONE, formatDate, isOverdue, money, paymentLabel } from "@/lib/format";
 import type { Order } from "@/lib/types";
@@ -19,6 +19,7 @@ function OrderView() {
   const { account } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const [downloadError, setDownloadError] = useState("");
 
   useEffect(() => {
     api<Order>(`/api/trade/orders/${id}/`)
@@ -32,6 +33,18 @@ function OrderView() {
   const overdue = isOverdue(order);
   const invoiceTo = account?.accounts_email || account?.email;
   const unpaid = ["invoiced", "overdue"].includes(order.payment_status);
+  // Emailed invoices are our own PDF, paid by bank transfer (no pay link).
+  const emailed = order.has_invoice_pdf;
+  const invoiced = Boolean(order.hosted_invoice_url) || (emailed && order.payment_status !== "invoice_failed");
+
+  const downloadInvoice = async () => {
+    setDownloadError("");
+    try {
+      await downloadFile(`/api/trade/orders/${order.id}/invoice/`, `Vintage Associates invoice ${order.reference}.pdf`);
+    } catch (err) {
+      setDownloadError((err as Error).message);
+    }
+  };
 
   return (
     <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-10">
@@ -44,8 +57,10 @@ function OrderView() {
             {order.payment_status === "bill_separately"
               ? "There's nothing to pay now: a member of our team will be in touch to arrange delivery and billing."
               : `${
-                  order.hosted_invoice_url
-                    ? `We've emailed the invoice to ${invoiceTo}, with payment due by ${formatDate(order.due_date)}.`
+                  invoiced
+                    ? `We've emailed the invoice to ${invoiceTo}, with payment due by ${formatDate(order.due_date)}${
+                        emailed ? " by bank transfer" : ""
+                      }.`
                     : `Your invoice will follow by email to ${invoiceTo} shortly.`
                 } We'll be in touch to arrange delivery.`}
           </p>
@@ -63,10 +78,10 @@ function OrderView() {
       <p className="text-[14px] text-ink-soft">
         Placed {formatDate(order.created_at)}
         {order.po_number && <> · PO {order.po_number}</>}
-        {order.stripe_invoice_number && <> · Invoice {order.stripe_invoice_number}</>}
+        {order.invoice_number && <> · Invoice {order.invoice_number}</>}
       </p>
 
-      {(order.hosted_invoice_url || order.invoice_pdf_url) && (
+      {(order.hosted_invoice_url || order.invoice_pdf_url || emailed) && (
         <div className={`mt-5 rounded-2xl p-5 ring-1 ${overdue ? "bg-danger/10 ring-danger/40" : "bg-surface ring-white/10 shadow-card"}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="text-[14px]">
@@ -79,12 +94,27 @@ function OrderView() {
                   <b className={overdue ? "text-danger" : ""}>{money(order.total)}</b> due by{" "}
                   <b className={overdue ? "text-danger" : ""}>{formatDate(order.due_date)}</b>
                   {overdue && " — this invoice is overdue"}
+                  {emailed && (
+                    <span className="block text-[13px] text-ink-soft">
+                      Please pay by bank transfer, quoting <b>{order.invoice_number}</b>. Our bank details are on the
+                      invoice.
+                    </span>
+                  )}
                 </p>
               ) : (
                 <p>Invoice {order.payment_status_label.toLowerCase()}.</p>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
+              {emailed && (
+                <button
+                  type="button"
+                  onClick={downloadInvoice}
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-gold px-4 text-[14px] text-black hover:bg-gold-dim"
+                >
+                  <Download className="h-4 w-4" /> Download invoice
+                </button>
+              )}
               {order.hosted_invoice_url && (
                 <a
                   href={order.hosted_invoice_url}
@@ -107,6 +137,11 @@ function OrderView() {
               )}
             </div>
           </div>
+          {downloadError && (
+            <Alert tone="error" className="mt-3">
+              {downloadError}
+            </Alert>
+          )}
         </div>
       )}
 
