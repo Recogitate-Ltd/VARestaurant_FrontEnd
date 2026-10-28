@@ -340,3 +340,52 @@ export interface Statement {
   balance_due: string;
   sent_at: string | null;
 }
+
+/** Wine list proposals: only the team's proposals login (/api/trade/proposals/access/). */
+export interface ProposalAccess {
+  allowed: boolean;
+  /** Our mark-up on the supplier's cost, e.g. "25.00". */
+  va_markup_percent: string;
+  default_margin_percent: string;
+  valid_days: number;
+}
+
+/** A wine on the supplier price list (/api/trade/proposals/wines/). Prices per bottle, ex VAT. */
+export interface ProposalWine {
+  code: string;
+  producer: string;
+  description: string;
+  vintage: string;
+  country: string;
+  region: string;
+  sub_region: string;
+  style: string;
+  group: string;
+  size: string;
+  new_label: string;
+  promotion: string;
+  /** The supplier's price (column Q). Staff only, never on the proposal. */
+  cost_price: string;
+  /** Cost + our mark-up: what the restaurant pays us. */
+  va_price: string;
+  /** Also in our trade catalogue (same product code). */
+  in_catalogue: boolean;
+  image_url: string | null;
+}
+
+export interface ProposalFilters {
+  styles: Facet[];
+  countries: Facet[];
+  total: number;
+}
+
+export interface SentProposal {
+  id: number;
+  reference: string;
+  restaurant_name: string;
+  contact_name: string;
+  email: string;
+  wine_count: number;
+  sent_at: string | null;
+  created_at: string;
+}

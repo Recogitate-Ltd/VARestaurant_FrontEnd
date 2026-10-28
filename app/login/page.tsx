@@ -9,7 +9,7 @@ import { homePath } from "@/lib/format";
 import type { TradeAccount } from "@/lib/types";
 
 function LoginForm() {
-  const { login, state, account } = useAuth();
+  const { login, state, account, proposals } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next");
@@ -23,16 +23,18 @@ function LoginForm() {
 
   useEffect(() => {
     if (state === "signed-in" && account) router.replace(account.status === "approved" ? nextFor(account) : "/account");
+    else if (state === "signed-in" && proposals) router.replace(next?.startsWith("/") && !next.startsWith("//") ? next : "/proposals");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, account, router, next]);
+  }, [state, account, proposals, router, next]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
     try {
-      const acc = await login(email, password);
-      router.replace(acc?.status === "approved" ? nextFor(acc) : acc ? "/account" : "/wines");
+      const { account: acc, proposals: canPropose } = await login(email, password);
+      if (!acc && canPropose) router.replace(next?.startsWith("/") && !next.startsWith("//") ? next : "/proposals");
+      else router.replace(acc?.status === "approved" ? nextFor(acc) : acc ? "/account" : "/wines");
     } catch (err) {
       setError(err instanceof Error ? err.message : "We couldn't log you in.");
     } finally {

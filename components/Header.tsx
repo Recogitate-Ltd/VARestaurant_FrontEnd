@@ -74,7 +74,7 @@ function BasketButton({ onClick, small = false }: { onClick: () => void; small?:
 
 export default function Header() {
   const pathname = usePathname() || "/";
-  const { state, account, logout } = useAuth();
+  const { state, account, proposals, logout } = useAuth();
   const { units, subtotal, ready } = useBasket();
   const [basketOpen, setBasketOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,7 +85,7 @@ export default function Header() {
   const signedIn = state === "signed-in";
   const inCheckout = pathname.startsWith("/checkout");
   const wines = approved && account?.wines_enabled !== false;
-  const homeHref = approved ? homePath(account) : "/";
+  const homeHref = approved ? homePath(account) : proposals ? "/proposals" : "/";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -119,6 +119,8 @@ export default function Header() {
     : signedIn
       ? []
       : [{ title: "How it works", href: "/" }];
+  // The team's proposals login: its own page, whether or not it has a trade account.
+  if (proposals) left.push({ title: "Proposals", href: "/proposals" });
   const right: NavItem[] = signedIn
     ? [
         ...(wines ? [{ title: "Requests", href: "/requests" }] : []),
