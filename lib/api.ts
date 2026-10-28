@@ -72,12 +72,19 @@ export function buildQuery(query?: Query): string {
   return s ? `?${s}` : "";
 }
 
-/** Download a file (e.g. a PDF invoice) from an authenticated endpoint. */
-export async function downloadFile(path: string, filename: string): Promise<void> {
+/** Download a file (e.g. a PDF invoice) from an authenticated endpoint. With a
+ * ``body``, it is POSTed as JSON (e.g. a proposal to draw as a PDF). */
+export async function downloadFile(path: string, filename: string, body?: unknown): Promise<void> {
   const token = getToken();
+  const headers: Record<string, string> = token ? { Authorization: `Token ${token}` } : {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Token ${token}` } : {} });
+    response = await fetch(`${API_URL}${path}`, {
+      method: body !== undefined ? "POST" : "GET",
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
   } catch {
     throw new ApiError(0, null, "We couldn't reach the server. Check your connection and try again.");
   }

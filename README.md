@@ -30,6 +30,7 @@ logo, header and footer, colours and fonts).
 | `/basket`, `/checkout` | Basket and checkout (delivery, PO number, notes) |
 | `/orders`, `/orders/[id]` | Order history, invoice status, pay / download invoice |
 | `/account` | Account status and contact / delivery details |
+| `/proposals` | **Team only** (the `support@vintage-associates.co.uk` login, set by `TRADE_PROPOSAL_EMAILS` on the backend): pick wines from the supplier price list, set the restaurant's margin per wine, and download or email a branded PDF proposal. Our price = cost (column Q) + 25%; list price = our price + the restaurant's margin |
 
 Pages that need an approved account show a "being reviewed" or "paused"
 message for pending, rejected and suspended accounts.
