@@ -124,20 +124,34 @@ export function PageSpinner({ label = "Loading…" }: { label?: string }) {
   );
 }
 
+function FieldLabel({ label, required, optional }: { label: string; required?: boolean; optional?: boolean }) {
+  return (
+    <span className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">
+      {label}
+      {required && <span className="text-gold"> *</span>}
+      {optional && <span className="ml-1.5 normal-case tracking-normal text-ink-faint">optional</span>}
+    </span>
+  );
+}
+
+function FieldNote({ error, hint }: { error?: string; hint?: string }) {
+  if (error) return <span className="block mt-1 text-[12px] text-danger">{error}</span>;
+  if (hint) return <span className="block mt-1 text-[12px] text-ink-faint">{hint}</span>;
+  return null;
+}
+
 export function Field({
   label,
   error,
   hint,
+  optional,
   className,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string; optional?: boolean }) {
   const id = props.id || props.name;
   return (
     <label htmlFor={id} className={clsx("block", className)}>
-      <span className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">
-        {label}
-        {props.required && <span className="text-gold"> *</span>}
-      </span>
+      <FieldLabel label={label} required={props.required} optional={optional} />
       <input
         id={id}
         {...props}
@@ -146,29 +160,37 @@ export function Field({
           error ? "border-danger" : "border-white/15"
         )}
       />
-      {error ? (
-        <span className="block mt-1 text-[12px] text-danger">{error}</span>
-      ) : hint ? (
-        <span className="block mt-1 text-[12px] text-ink-faint">{hint}</span>
-      ) : null}
+      <FieldNote error={error} hint={hint} />
     </label>
   );
 }
 
 export function TextArea({
   label,
+  error,
+  hint,
+  optional,
   className,
   ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label: string;
+  error?: string;
+  hint?: string;
+  optional?: boolean;
+}) {
   const id = props.id || props.name;
   return (
     <label htmlFor={id} className={clsx("block", className)}>
-      <span className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">{label}</span>
+      <FieldLabel label={label} required={props.required} optional={optional} />
       <textarea
         id={id}
         {...props}
-        className="w-full rounded-xl border border-white/15 bg-black/20 px-3.5 py-2.5 text-[15px] text-white placeholder:text-ink-faint outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+        className={clsx(
+          "w-full rounded-xl border bg-black/20 px-3.5 py-2.5 text-[15px] text-white placeholder:text-ink-faint outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20",
+          error ? "border-danger" : "border-white/15"
+        )}
       />
+      <FieldNote error={error} hint={hint} />
     </label>
   );
 }
