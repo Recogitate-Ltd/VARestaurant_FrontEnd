@@ -15,6 +15,13 @@ export interface PaymentOption {
   declarations: Record<Declaration, string>;
 }
 
+export interface PaymentMethod {
+  /** The account's invoice method: "stripe" (card) or "email" (bank transfer). */
+  value: string;
+  label: string;
+  description: string;
+}
+
 export interface TradeTerms {
   intro: string;
   sections: { title: string; clauses: string[] }[];
@@ -22,6 +29,8 @@ export interface TradeTerms {
   payment_clause: { section: number; clause: number };
   payment_options: PaymentOption[];
   default_payment_option: string;
+  payment_methods: PaymentMethod[];
+  default_payment_method: string;
 }
 
 export function fetchTradeTerms() {
