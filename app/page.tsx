@@ -10,8 +10,8 @@ import { homePath } from "@/lib/format";
 const STEPS = [
   {
     icon: FileText,
-    title: "Apply in two minutes",
-    body: "Tell us about your restaurant. We review every application, usually within one working day.",
+    title: "Apply in five minutes",
+    body: "Tell us about your restaurant. We review every application within two working days.",
   },
   {
     icon: Grape,

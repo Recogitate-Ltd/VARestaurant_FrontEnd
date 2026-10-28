@@ -69,7 +69,7 @@ export default function Gate({
         <p>
           Thanks for applying, {account.contact_name.split(" ")[0]}. We received the application for{" "}
           <b className="text-ink">{account.business_name}</b> on {formatDate(account.created_at)} and will email{" "}
-          {account.email} as soon as it&apos;s approved, usually within one working day.
+          {account.email} as soon as it&apos;s approved, within two working days.
         </p>
         <p>
           Questions? Call {SUPPORT_PHONE} or email{" "}
