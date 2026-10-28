@@ -1,13 +1,14 @@
 "use client";
 
+import clsx from "clsx";
 import { CheckCircle2, FileText, PoundSterling, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import SignaturePad from "@/components/SignaturePad";
-import { Alert, Button, ButtonLink, Field, TextArea } from "@/components/ui";
+import { Alert, Button, ButtonLink, Field, Spinner, TextArea } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { TERMS, TERMS_INTRO } from "@/lib/trade-terms";
+import { Declaration, TradeTerms, fetchTradeTerms, sectionsFor } from "@/lib/trade-terms";
 
 const BUSINESS_TYPES = [
   { value: "restaurant", label: "Restaurant" },
@@ -88,7 +89,11 @@ function validate(form: Form, sameDelivery: boolean, checks: Checks, signature: 
   return e;
 }
 
-const NO_CHECKS = { accept_terms: false, confirm_director: false, consent_electronic_signature: false };
+const NO_CHECKS: Record<Declaration, boolean> = {
+  accept_terms: false,
+  confirm_director: false,
+  consent_electronic_signature: false,
+};
 type Checks = typeof NO_CHECKS;
 
 /** A numbered section: title on the left, fields on the right (stacked on mobile). */
@@ -155,6 +160,23 @@ export default function ApplyPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [terms, setTerms] = useState<TradeTerms | null>(null);
+  const [termsError, setTermsError] = useState("");
+  const [paymentOption, setPaymentOption] = useState("");
+
+  const loadTerms = useCallback(() => {
+    setTermsError("");
+    fetchTradeTerms()
+      .then((t) => {
+        setTerms(t);
+        setPaymentOption((current) => current || t.default_payment_option);
+      })
+      .catch(() => setTermsError("We couldn't load our terms and conditions. Please try again."));
+  }, []);
+
+  useEffect(loadTerms, [loadTerms]);
+
+  const payment = terms?.payment_options.find((o) => o.value === paymentOption) ?? terms?.payment_options[0];
 
   const clearError = useCallback(
     (name: string) =>
@@ -205,6 +227,10 @@ export default function ApplyPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!terms || !payment) {
+      setError("Please wait for the terms and conditions to load, then try again.");
+      return;
+    }
     const found = validate(form, sameDelivery, checks, signature);
     setErrors(found);
     if (Object.keys(found).length) {
@@ -215,6 +241,7 @@ export default function ApplyPage() {
     const body: Record<string, unknown> = {
       ...form,
       ...checks,
+      payment_option: payment.value,
       signature,
       // The registered name is the account's name; the trading name stands in when it's the same.
       business_name: form.business_name.trim() || form.trading_name.trim(),
@@ -250,7 +277,8 @@ export default function ApplyPage() {
         <p className="mt-3 text-[16px] text-ink-soft">
           Thank you. We&apos;ll review the application for{" "}
           <b className="text-ink">{form.trading_name || form.business_name}</b> and email {form.email} within two
-          working days. Once it&apos;s approved you can log in and start ordering.
+          working days. Once it&apos;s approved you can log in and start ordering. We&apos;ve emailed you a copy of
+          your signed application.
         </p>
         <ButtonLink href="/account" variant="secondary" className="mt-8">
           View your application
@@ -275,7 +303,7 @@ export default function ApplyPage() {
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         {[
-          { Icon: FileText, title: "Payment terms", text: "30 days from statement" },
+          { Icon: FileText, title: "Payment terms", text: "14 or 30 days, or end of the following month" },
           { Icon: PoundSterling, title: "Minimum order", text: "£450 ex VAT" },
           { Icon: ShieldCheck, title: "Credit account", text: "Subject to approval and credit limit" },
         ].map(({ Icon, title, text }) => (
@@ -413,17 +441,16 @@ export default function ApplyPage() {
         >
           <div className="sm:col-span-2 space-y-2 rounded-xl bg-surface p-5 text-[13px] text-ink-soft ring-1 ring-white/10">
             <p>
-              <b className="font-medium text-white">Payment terms:</b> invoices are consolidated onto a monthly
-              statement issued at the end of the month of delivery, and payment falls due 30 days from that statement
-              date.
+              <b className="font-medium text-white">Payment terms:</b> choose the terms you&apos;d like below. Each
+              invoice shows its due date, and we email a statement of your invoices at the end of each month.
             </p>
             <p>
               <b className="font-medium text-white">Licensing:</b> we supply licensed premises only; the licence number
               above must be valid at the point of delivery.
             </p>
             <p>
-              <b className="font-medium text-white">Credit:</b> the account is subject to approval, and a credit limit
-              will be confirmed in writing before your first order.
+              <b className="font-medium text-white">Credit:</b> the account and payment terms are subject to approval,
+              and a credit limit will be confirmed in writing before your first order.
             </p>
             <p>
               <b className="font-medium text-white">Signature:</b> the declaration below must be signed by a director
@@ -431,39 +458,87 @@ export default function ApplyPage() {
             </p>
           </div>
 
-          <div className="sm:col-span-2">
-            <div
-              tabIndex={0}
-              aria-label="Terms and conditions of sale"
-              className="max-h-72 overflow-y-auto rounded-xl bg-black/20 p-5 text-[13px] leading-relaxed text-ink-soft ring-1 ring-white/10 focus:outline-none focus:ring-gold"
-            >
-              <h3 className="text-[14px] font-medium text-white">Terms &amp; conditions of sale</h3>
-              <p className="mt-1 text-[12px]">{TERMS_INTRO}</p>
-              {TERMS.map((section, i) => (
-                <div key={section.title} className="mt-4">
-                  <h4 className="text-[12px] font-medium tracking-wide text-white">
-                    {i + 1}. {section.title}
-                  </h4>
-                  <ol className="mt-1.5 space-y-1.5">
-                    {section.clauses.map((clause, j) => (
-                      <li key={j} className="flex gap-3">
-                        <span className="w-6 shrink-0 text-ink-faint">
-                          {i + 1}.{j + 1}
-                        </span>
-                        <span>{clause}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              ))}
+          {termsError ? (
+            <div className="sm:col-span-2">
+              <Alert tone="error">
+                {termsError}{" "}
+                <button type="button" onClick={loadTerms} className="underline">
+                  Try again
+                </button>
+              </Alert>
             </div>
-            <span className="mt-1 block text-[12px] text-ink-faint">Scroll to read all clauses.</span>
-          </div>
+          ) : !terms || !payment ? (
+            <div className="sm:col-span-2 flex items-center gap-3 py-6 text-[13px] text-ink-faint">
+              <Spinner className="h-5 w-5 text-gold" /> Loading our terms and conditions…
+            </div>
+          ) : (
+            <>
+              <fieldset className="sm:col-span-2">
+                <legend className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">
+                  Payment terms<span className="text-gold"> *</span>
+                </legend>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {terms.payment_options.map((option) => (
+                    <label
+                      key={option.value}
+                      className={clsx(
+                        "flex cursor-pointer items-start gap-3 rounded-xl p-3.5 text-[14px] ring-1 transition",
+                        option.value === payment.value
+                          ? "bg-gold/10 text-white ring-gold"
+                          : "bg-surface text-ink ring-white/10 hover:ring-white/25"
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="payment_option"
+                        value={option.value}
+                        checked={option.value === payment.value}
+                        onChange={() => setPaymentOption(option.value)}
+                        className="mt-0.5 h-4 w-4 shrink-0 accent-[#C4AD93]"
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+                <span className="mt-1 block text-[12px] text-ink-faint">
+                  Subject to approval. Clause 3.2 of the terms below changes to match.
+                </span>
+              </fieldset>
 
-          <Check className="sm:col-span-2" {...check("accept_terms")}>
-            I confirm the information given is correct and, on behalf of the business named above, I accept Vintage
-            Associates&apos; terms and conditions of sale set out above, including payment 30 days from statement.
-          </Check>
+              <div className="sm:col-span-2">
+                <div
+                  tabIndex={0}
+                  aria-label="Terms and conditions of sale"
+                  className="max-h-72 overflow-y-auto rounded-xl bg-black/20 p-5 text-[13px] leading-relaxed text-ink-soft ring-1 ring-white/10 focus:outline-none focus:ring-gold"
+                >
+                  <h3 className="text-[14px] font-medium text-white">Terms &amp; conditions of sale</h3>
+                  <p className="mt-1 text-[12px]">{terms.intro}</p>
+                  {sectionsFor(terms, payment).map((section, i) => (
+                    <div key={section.title} className="mt-4">
+                      <h4 className="text-[12px] font-medium tracking-wide text-white">
+                        {i + 1}. {section.title}
+                      </h4>
+                      <ol className="mt-1.5 space-y-1.5">
+                        {section.clauses.map((clause, j) => (
+                          <li key={j} className="flex gap-3">
+                            <span className="w-6 shrink-0 text-ink-faint">
+                              {i + 1}.{j + 1}
+                            </span>
+                            <span>{clause}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
+                </div>
+                <span className="mt-1 block text-[12px] text-ink-faint">Scroll to read all clauses.</span>
+              </div>
+
+              <Check className="sm:col-span-2" {...check("accept_terms")}>
+                {payment.declarations.accept_terms}
+              </Check>
+            </>
+          )}
 
           <Field label="Full name" required {...bind("signatory_name")} />
           <Field
@@ -473,13 +548,16 @@ export default function ApplyPage() {
             {...bind("signatory_position")}
           />
 
-          <Check className="sm:col-span-2" {...check("confirm_director")}>
-            I confirm I am a director of the business named above and am authorised to open this account on its behalf.
-          </Check>
-          <Check className="sm:col-span-2" {...check("consent_electronic_signature")}>
-            I am happy for an electronic signature to be used, and agree it has the same legal effect as a handwritten
-            signature.
-          </Check>
+          {payment && (
+            <>
+              <Check className="sm:col-span-2" {...check("confirm_director")}>
+                {payment.declarations.confirm_director}
+              </Check>
+              <Check className="sm:col-span-2" {...check("consent_electronic_signature")}>
+                {payment.declarations.consent_electronic_signature}
+              </Check>
+            </>
+          )}
 
           <div className="sm:col-span-2">
             <SignaturePad label="Director's signature" onChange={onSignature} error={errors.signature} />
