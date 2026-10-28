@@ -150,6 +150,61 @@ function Check({
   );
 }
 
+/** A row of radio cards, e.g. the payment terms. */
+function ChoiceCards({
+  name,
+  label,
+  options,
+  value,
+  onChange,
+  hint,
+}: {
+  name: string;
+  label: string;
+  options: { value: string; label: string; description?: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  hint?: string;
+}) {
+  return (
+    <fieldset className="sm:col-span-2">
+      <legend className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">
+        {label}
+        <span className="text-gold"> *</span>
+      </legend>
+      <div className={clsx("grid gap-2", options.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+        {options.map((option) => (
+          <label
+            key={option.value}
+            className={clsx(
+              "flex cursor-pointer items-start gap-3 rounded-xl p-3.5 text-[14px] ring-1 transition",
+              option.value === value
+                ? "bg-gold/10 text-white ring-gold"
+                : "bg-surface text-ink ring-white/10 hover:ring-white/25"
+            )}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={option.value === value}
+              onChange={() => onChange(option.value)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#C4AD93]"
+            />
+            <span>
+              {option.label}
+              {option.description && (
+                <span className="mt-0.5 block text-[12px] text-ink-soft">{option.description}</span>
+              )}
+            </span>
+          </label>
+        ))}
+      </div>
+      {hint && <span className="mt-1 block text-[12px] text-ink-faint">{hint}</span>}
+    </fieldset>
+  );
+}
+
 export default function ApplyPage() {
   const { login } = useAuth();
   const [form, setForm] = useState<Form>(() => ({ ...EMPTY, signed_on: today() }));
@@ -163,6 +218,7 @@ export default function ApplyPage() {
   const [terms, setTerms] = useState<TradeTerms | null>(null);
   const [termsError, setTermsError] = useState("");
   const [paymentOption, setPaymentOption] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
 
   const loadTerms = useCallback(() => {
     setTermsError("");
@@ -170,6 +226,7 @@ export default function ApplyPage() {
       .then((t) => {
         setTerms(t);
         setPaymentOption((current) => current || t.default_payment_option);
+        setPaymentMethod((current) => current || t.default_payment_method);
       })
       .catch(() => setTermsError("We couldn't load our terms and conditions. Please try again."));
   }, []);
@@ -177,6 +234,7 @@ export default function ApplyPage() {
   useEffect(loadTerms, [loadTerms]);
 
   const payment = terms?.payment_options.find((o) => o.value === paymentOption) ?? terms?.payment_options[0];
+  const method = terms?.payment_methods.find((m) => m.value === paymentMethod) ?? terms?.payment_methods[0];
 
   const clearError = useCallback(
     (name: string) =>
@@ -227,7 +285,7 @@ export default function ApplyPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!terms || !payment) {
+    if (!terms || !payment || !method) {
       setError("Please wait for the terms and conditions to load, then try again.");
       return;
     }
@@ -242,6 +300,7 @@ export default function ApplyPage() {
       ...form,
       ...checks,
       payment_option: payment.value,
+      invoice_method: method.value,
       signature,
       // The registered name is the account's name; the trading name stands in when it's the same.
       business_name: form.business_name.trim() || form.trading_name.trim(),
@@ -473,37 +532,21 @@ export default function ApplyPage() {
             </div>
           ) : (
             <>
-              <fieldset className="sm:col-span-2">
-                <legend className="block text-[12px] uppercase tracking-[0.12em] text-ink-soft mb-1.5">
-                  Payment terms<span className="text-gold"> *</span>
-                </legend>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {terms.payment_options.map((option) => (
-                    <label
-                      key={option.value}
-                      className={clsx(
-                        "flex cursor-pointer items-start gap-3 rounded-xl p-3.5 text-[14px] ring-1 transition",
-                        option.value === payment.value
-                          ? "bg-gold/10 text-white ring-gold"
-                          : "bg-surface text-ink ring-white/10 hover:ring-white/25"
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name="payment_option"
-                        value={option.value}
-                        checked={option.value === payment.value}
-                        onChange={() => setPaymentOption(option.value)}
-                        className="mt-0.5 h-4 w-4 shrink-0 accent-[#C4AD93]"
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                </div>
-                <span className="mt-1 block text-[12px] text-ink-faint">
-                  Subject to approval. Clause 3.2 of the terms below changes to match.
-                </span>
-              </fieldset>
+              <ChoiceCards
+                name="payment_option"
+                label="Payment terms"
+                options={terms.payment_options}
+                value={payment.value}
+                onChange={setPaymentOption}
+                hint="Subject to approval. Clause 3.2 of the terms below changes to match."
+              />
+              <ChoiceCards
+                name="invoice_method"
+                label="Preferred payment method"
+                options={terms.payment_methods}
+                value={method?.value ?? ""}
+                onChange={setPaymentMethod}
+              />
 
               <div className="sm:col-span-2">
                 <div
