@@ -346,7 +346,9 @@ export interface ProposalAccess {
   allowed: boolean;
   /** Our mark-up on the supplier's cost, e.g. "25.00". */
   va_markup_percent: string;
+  /** The restaurant's gross margin on the list price, e.g. "65" (list = our price ÷ 0.35). */
   default_margin_percent: string;
+  max_margin_percent: string;
   valid_days: number;
 }
 

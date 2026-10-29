@@ -13,10 +13,10 @@ import type { Paginated, ProposalAccess, ProposalFilters, ProposalWine, SentProp
 /*
  * Wine list proposals, for the team's proposals login only (the server checks
  * too: the price list carries our cost prices). Pick wines from the supplier
- * price list, set the restaurant's margin per wine, then download or email a
- * branded PDF. Per bottle, ex VAT:
+ * price list, set the restaurant's target gross margin per wine, then download
+ * or email a branded PDF. Per bottle, ex VAT:
  *   our price  = cost (column Q) + our mark-up (25%)
- *   list price = our price + the restaurant's margin
+ *   list price = our price ÷ (1 − the restaurant's gross margin), e.g. ÷ 0.35 at 65%
  * The server reprices everything when it draws the PDF; the sums here mirror it.
  */
 
@@ -43,16 +43,25 @@ function addPercent(amount: number, percent: number): number {
   return Math.round((pence * (100 + percent)) / 100) / 100;
 }
 
+/** The price at which ``amount`` leaves a gross margin of ``margin``%, to the penny, as the server works it out. */
+function atGrossMargin(amount: number, margin: number): number {
+  const pence = Math.round(amount * 100);
+  return Math.round((pence * 100) / (100 - margin)) / 100;
+}
+
+/** Past this a list price is silly (at 100% it would be infinite); the server refuses more. */
+const MAX_MARGIN = 95;
+
 function parseMargin(value: string): number | null {
   if (value.trim() === "") return null;
   const n = Number(value);
-  return Number.isFinite(n) && n >= 0 && n <= 1000 ? n : null;
+  return Number.isFinite(n) && n >= 0 && n <= MAX_MARGIN ? n : null;
 }
 
 function priced(line: Line) {
   const ours = Number(line.wine.va_price);
   const margin = parseMargin(line.margin);
-  const listEx = margin === null ? null : addPercent(ours, margin);
+  const listEx = margin === null ? null : atGrossMargin(ours, margin);
   return {
     cost: Number(line.wine.cost_price),
     ours,
@@ -274,7 +283,7 @@ function MarginInput({ value, onChange, label }: { value: string; onChange: (v: 
         type="number"
         inputMode="decimal"
         min={0}
-        max={1000}
+        max={MAX_MARGIN}
         step={0.5}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -354,20 +363,24 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
       const raw = window.localStorage.getItem(DRAFT_KEY);
       if (raw) {
         const draft = JSON.parse(raw);
-        if (Array.isArray(draft.lines)) setLines(draft.lines);
+        // Drafts saved before margins became gross margins hold mark-ups: keep the wines, not the margins.
+        const gross = draft.marginBasis === "gross";
+        const fallback = String(Number(access.default_margin_percent));
+        if (Array.isArray(draft.lines))
+          setLines(gross ? draft.lines : draft.lines.map((l: Line) => ({ ...l, margin: fallback })));
         if (draft.customer) setCustomer({ ...EMPTY_CUSTOMER, ...draft.customer });
-        if (typeof draft.defaultMargin === "string") setDefaultMargin(draft.defaultMargin);
+        if (gross && typeof draft.defaultMargin === "string") setDefaultMargin(draft.defaultMargin);
       }
     } catch {
       // No storage, or an old draft: start afresh.
     }
     setLoaded(true);
-  }, []);
+  }, [access.default_margin_percent]);
 
   useEffect(() => {
     if (!loaded) return;
     try {
-      window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ lines, customer, defaultMargin }));
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ lines, customer, defaultMargin, marginBasis: "gross" }));
     } catch {
       // Private mode etc.
     }
@@ -380,9 +393,9 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
       setLines((prev) =>
         prev.some((l) => l.wine.code === wine.code)
           ? prev
-          : [...prev, { wine, margin: parseMargin(defaultMargin) === null ? "40" : defaultMargin }]
+          : [...prev, { wine, margin: parseMargin(defaultMargin) === null ? String(Number(access.default_margin_percent)) : defaultMargin }]
       ),
-    [defaultMargin]
+    [defaultMargin, access.default_margin_percent]
   );
   const setMargin = (code: string, margin: string) =>
     setLines((prev) => prev.map((l) => (l.wine.code === code ? { ...l, margin } : l)));
@@ -504,13 +517,13 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
             <div>
               <h2 className="font-display text-[26px] font-medium text-white">Proposal</h2>
               <p className="mt-1 text-[13px] text-ink-soft">
-                Our price = cost + {Number(access.va_markup_percent)}%. List price = our price + the restaurant&apos;s
-                margin. All per bottle.
+                Our price = cost + {Number(access.va_markup_percent)}%. List price = our price ÷ (1 − the
+                restaurant&apos;s gross margin), so at 65% our price is 35% of the list price. All per bottle, ex VAT.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[12px] uppercase tracking-[0.12em] text-ink-soft">Restaurant margin</span>
-              <MarginInput value={defaultMargin} onChange={setDefaultMargin} label="Restaurant margin for new wines" />
+              <span className="text-[12px] uppercase tracking-[0.12em] text-ink-soft">Gross margin</span>
+              <MarginInput value={defaultMargin} onChange={setDefaultMargin} label="Restaurant gross margin for new wines" />
               <Button size="sm" variant="secondary" onClick={applyToAll} disabled={!lines.length}>
                 Apply to all
               </Button>
@@ -556,7 +569,7 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
                           <MarginInput
                             value={line.margin}
                             onChange={(v) => setMargin(line.wine.code, v)}
-                            label={`Margin for ${line.wine.description}`}
+                            label={`Gross margin for ${line.wine.description}`}
                           />
                         </div>
                       </td>
@@ -587,7 +600,7 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
                 <dd className="mt-1 font-display text-[22px] text-gold">{lines.length}</dd>
               </div>
               <div>
-                <dt className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Average margin</dt>
+                <dt className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">Average gross margin</dt>
                 <dd className="mt-1 font-display text-[22px] text-gold">{averageMargin}%</dd>
               </div>
               <div>
@@ -622,10 +635,10 @@ function ProposalBuilder({ access }: { access: ProposalAccess }) {
             )}
           </div>
           {invalid && (
-            <p className="mt-2 text-[12px] text-danger">Give every wine a margin between 0% and 1000%.</p>
+            <p className="mt-2 text-[12px] text-danger">Give every wine a gross margin between 0% and {MAX_MARGIN}%.</p>
           )}
           <p className="mt-3 text-[12px] text-ink-faint">
-            The PDF shows our price and the list price at the restaurant&apos;s margin, never our cost. Prices are
+            The PDF shows our price and the list price at the restaurant&apos;s gross margin, never our cost. Prices are
             valid for {access.valid_days} days.
           </p>
         </section>
@@ -653,7 +666,7 @@ export default function ProposalsPage() {
         Wine list proposals
       </h1>
       <p className="mt-1 mb-8 text-[14px] text-ink-soft max-w-2xl">
-        Choose wines, set the restaurant&apos;s margin on each, and email them a Vintage Associates proposal as a
+        Choose wines, set the restaurant&apos;s gross margin on each, and email them a Vintage Associates proposal as a
         PDF. Only the team can see this page.
       </p>
       <ProposalBuilder access={proposals} />
