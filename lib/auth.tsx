@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ApiError, api, getToken, setToken } from "./api";
+import { ApiError, IMPERSONATION_EVENT, api, getImpersonation, getToken, setToken } from "./api";
 import type { ProposalAccess, TradeAccount } from "./types";
 
 type AuthState = "loading" | "anonymous" | "signed-in";
@@ -81,7 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState("anonymous");
     };
     window.addEventListener("va-trade-logout", onLogout);
-    return () => window.removeEventListener("va-trade-logout", onLogout);
+    // Starting or ending "view as client" swaps who is signed in.
+    window.addEventListener(IMPERSONATION_EVENT, refresh);
+    return () => {
+      window.removeEventListener("va-trade-logout", onLogout);
+      window.removeEventListener(IMPERSONATION_EVENT, refresh);
+    };
   }, [refresh]);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -113,7 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     const token = getToken();
-    if (token) {
+    // Viewing as a client: just end the view. Calling /auth/logout/ would
+    // sign the restaurant out everywhere (and is refused as view-only anyway).
+    if (token && !getImpersonation()) {
       api("/auth/logout/", { method: "POST" }).catch(() => undefined);
     }
     setToken(null);

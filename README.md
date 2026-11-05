@@ -35,6 +35,14 @@ logo, header and footer, colours and fonts).
 Pages that need an approved account show a "being reviewed" or "paused"
 message for pending, rejected and suspended accounts.
 
+### View as client (admin)
+
+`/impersonate` is where the admin portal's **View as client** button lands
+(Restaurant Trade → a restaurant → View as client). It signs the tab in as
+that restaurant so the team can see their exact screens. The session is
+view-only (the backend refuses orders and changes), lasts 30 minutes, stays in
+that one tab, and shows a red "Viewing as …" bar with an Exit button.
+
 ### Members (billed separately)
 
 Admins can also give selected Vintage Associates members (investment-app
