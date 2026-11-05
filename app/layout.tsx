@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     description: "Your wine list, on account. 2,300+ wines at trade prices, by the bottle or the case.",
   },
   robots: { index: false, follow: false },
+  // Saved to the home screen, run full-screen like an app (start page is set
+  // in app/manifest.ts).
+  appleWebApp: { capable: true, title: "VA Trade", statusBarStyle: "black" },
 };
 
 export const viewport: Viewport = {
