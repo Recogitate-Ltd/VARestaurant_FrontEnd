@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import CellarVideo from "@/components/CellarVideo";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div aria-hidden className="h-[max(2rem,calc(26vh-4rem))] lg:h-[max(3rem,calc(30vh-88px))] shrink-0" />
           <div className="relative z-10 flex-1">{children}</div>
           <Footer />
+          <ImpersonationBanner />
         </Providers>
       </body>
     </html>

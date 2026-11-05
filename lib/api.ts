@@ -3,8 +3,84 @@
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 const TOKEN_KEY = "va_trade_token";
 
+/**
+ * "View as client": an admin opens this site from the admin panel signed in
+ * as a restaurant, to see their exact screens. The admin panel hands over a
+ * short-lived, view-only token (the backend refuses anything but reads). It
+ * lives in sessionStorage, so it stays in that one tab and never replaces a
+ * real sign-in kept in localStorage.
+ */
+const IMPERSONATION_KEY = "va_trade_impersonation";
+export const IMPERSONATION_EVENT = "va-trade-impersonation";
+
+export interface Impersonation {
+  token: string;
+  /** Who the admin is viewing as, for the banner. */
+  name: string;
+  /** Epoch milliseconds. */
+  expiresAt: number;
+}
+
+export function getImpersonation(): Impersonation | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(IMPERSONATION_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Impersonation;
+    if (!value?.token || !(value.expiresAt > Date.now())) {
+      window.sessionStorage.removeItem(IMPERSONATION_KEY);
+      return null;
+    }
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+/** Reads the expiry (``exp``, seconds) out of a JWT without verifying it. */
+export function tokenExpiry(token: string): number | null {
+  try {
+    const part = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const exp = JSON.parse(atob(part.padEnd(part.length + ((4 - (part.length % 4)) % 4), "="))).exp;
+    return typeof exp === "number" ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+export function startImpersonation(token: string, name: string): boolean {
+  const expiresAt = tokenExpiry(token);
+  if (!expiresAt || expiresAt <= Date.now()) return false;
+  try {
+    window.sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify({ token, name, expiresAt }));
+  } catch {
+    return false;
+  }
+  window.dispatchEvent(new Event(IMPERSONATION_EVENT));
+  return true;
+}
+
+export function endImpersonation() {
+  try {
+    window.sessionStorage.removeItem(IMPERSONATION_KEY);
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event(IMPERSONATION_EVENT));
+}
+
+/** The Authorization header for the current session, if any. */
+function authHeader(): string | null {
+  const impersonation = getImpersonation();
+  if (impersonation) return `Bearer ${impersonation.token}`;
+  const token = getToken();
+  return token ? `Token ${token}` : null;
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
+  const impersonation = getImpersonation();
+  if (impersonation) return impersonation.token;
   try {
     return window.localStorage.getItem(TOKEN_KEY);
   } catch {
@@ -13,6 +89,12 @@ export function getToken(): string | null {
 }
 
 export function setToken(token: string | null) {
+  // Signing out while viewing as a client ends the view, and leaves any real
+  // sign-in on this browser alone.
+  if (!token && getImpersonation()) {
+    endImpersonation();
+    return;
+  }
   try {
     if (token) window.localStorage.setItem(TOKEN_KEY, token);
     else window.localStorage.removeItem(TOKEN_KEY);
@@ -75,8 +157,8 @@ export function buildQuery(query?: Query): string {
 /** Download a file (e.g. a PDF invoice) from an authenticated endpoint. With a
  * ``body``, it is POSTed as JSON (e.g. a proposal to draw as a PDF). */
 export async function downloadFile(path: string, filename: string, body?: unknown): Promise<void> {
-  const token = getToken();
-  const headers: Record<string, string> = token ? { Authorization: `Token ${token}` } : {};
+  const authorization = authHeader();
+  const headers: Record<string, string> = authorization ? { Authorization: authorization } : {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
   let response: Response;
   try {
@@ -114,8 +196,9 @@ export async function api<T>(
   const { method = "GET", body, query, auth = true } = options;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const token = auth ? getToken() : null;
-  if (token) headers.Authorization = `Token ${token}`;
+  const authorization = auth ? authHeader() : null;
+  const token = authorization ? getToken() : null;
+  if (authorization) headers.Authorization = authorization;
 
   let response: Response;
   try {

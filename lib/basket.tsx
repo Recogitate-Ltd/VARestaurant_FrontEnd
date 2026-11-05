@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FORMAT_BOTTLES, lineVat, SOLD_FORMATS } from "./format";
+import { IMPERSONATION_EVENT, getImpersonation } from "./api";
 import type { Accessory, FormatCode, Wine } from "./types";
 
 /**
@@ -63,21 +64,33 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
   const [addedAt, setAddedAt] = useState(0);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // Drop lines in formats we no longer sell (cases of 3 and 12).
-        if (Array.isArray(parsed)) setLines(parsed.filter((l: BasketLine) => SOLD_FORMATS.includes(l.format)));
+    const load = () => {
+      // An admin viewing as a client starts from an empty basket and never
+      // touches the one saved on this browser. (The client's own basket lives
+      // on their device, so it can't be shown.)
+      if (getImpersonation()) {
+        setLines([]);
+        return;
       }
-    } catch {
-      // ignore unreadable storage
-    }
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Drop lines in formats we no longer sell (cases of 3 and 12).
+          if (Array.isArray(parsed)) setLines(parsed.filter((l: BasketLine) => SOLD_FORMATS.includes(l.format)));
+        }
+      } catch {
+        // ignore unreadable storage
+      }
+    };
+    load();
     setReady(true);
+    window.addEventListener(IMPERSONATION_EVENT, load);
+    return () => window.removeEventListener(IMPERSONATION_EVENT, load);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || getImpersonation()) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     } catch {
